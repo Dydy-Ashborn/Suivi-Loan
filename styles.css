@@ -60,3 +60,70 @@
             color: white;
             box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
         }
+
+        .time-input {
+            -webkit-appearance: none;
+            -moz-appearance: textfield;
+        }
+
+        .time-input::-webkit-calendar-picker-indicator {
+            background: transparent;
+            bottom: 0;
+            color: transparent;
+            cursor: pointer;
+            height: auto;
+            left: 0;
+            position: absolute;
+            right: 0;
+            top: 0;
+            width: auto;
+        }
+
+        .entry-actions {
+            display: none;
+        }
+
+        .entry-item:hover .entry-actions {
+            display: flex;
+        }
+.medication-item {
+    transition: all 0.3s ease;
+}
+
+.medication-available {
+    background: linear-gradient(to right, #dcfce7, #bbf7d0);
+    border-color: #22c55e;
+}
+
+.medication-waiting {
+    background: linear-gradient(to right, #fef3c7, #fde68a);
+    border-color: #f59e0b;
+}
+
+.medication-soon {
+    background: linear-gradient(to right, #fecaca, #fca5a5);
+    border-color: #ef4444;
+}
+
+.pulse-gentle {
+    animation: pulse-gentle 2s infinite;
+}
+
+@keyframes pulse-gentle {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.8;
+    }
+}
+
+.appointment-upcoming {
+    background: linear-gradient(to right, #ddd6fe, #c4b5fd);
+    border-color: #8b5cf6;
+}
+
+.appointment-today {
+    background: linear-gradient(to right, #fecaca, #fca5a5);
+    border-color: #ef4444;
+}
