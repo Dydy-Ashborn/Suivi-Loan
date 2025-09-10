@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Suivi Loan - Dylan & Chloé</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👶</text></svg>">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        .glass {
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .btn-scale:active {
+            transform: scale(0.95);
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .slide-up {
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Icônes SVG intégrées */
+        .icon-baby { width: 24px; height: 24px; }
+        .icon-milk { width: 20px; height: 20px; }
+        .icon-settings { width: 20px; height: 20px; }
+        .icon-download { width: 16px; height: 16px; }
+        .icon-upload { width: 16px; height: 16px; }
+        .icon-clock { width: 16px; height: 16px; }
+        .icon-calendar { width: 20px; height: 20px; }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+    <div class="max-w-md mx-auto p-4">
+        <!-- Header -->
+        <div class="text-center mb-6 pt-4">
+            <div class="flex items-center justify-between">
+                <div class="w-8"></div>
+                <div class="flex flex-col items-center">
+                    <div class="flex items-center mb-1">
+                        <div class="w-8 h-8 text-2xl mr-2">👶</div>
+                        <h1 class="text-2xl font-bold text-gray-800">Petit Loan</h1>
+                    </div>
+                    <div class="bg-white/80 glass rounded-full px-4 py-1 shadow-sm border border-white/50">
+                        <p class="text-sm font-medium text-gray-700">
+                            Jour <span id="baby-age">4</span> • 3.290kg • 48cm
+                        </p>
+                    </div>
+                </div>
+                <button id="settings-btn" class="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-gray-700 hover:bg-white/50 rounded-full transition-all">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                </button>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">Né le 06/09/2025 à 06h38</p>
+        </div>
+
+        <!-- Statistiques du jour -->
+        <div class="grid grid-cols-3 gap-3 mb-6">
+            <div class="bg-white/80 glass rounded-2xl p-4 text-center shadow-sm border border-white/50">
+                <svg class="w-6 h-6 text-blue-500 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                </svg>
+                <div class="text-lg font-bold text-gray-800" id="total-milk">0ml</div>
+                <div class="text-xs text-gray-500">Lait aujourd'hui</div>
+            </div>
+            <div class="bg-white/80 glass rounded-2xl p-4 text-center shadow-sm border border-white/50">
+                <div class="text-xl mb-1">💧</div>
+                <div class="text-lg font-bold text-gray-800" id="total-pees">0</div>
+                <div class="text-xs text-gray-500">Pipis</div>
+            </div>
+            <div class="bg-white/80 glass rounded-2xl p-4 text-center shadow-sm border border-white/50">
+                <div class="text-xl mb-1">💩</div>
+                <div class="text-lg font-bold text-gray-800" id="total-poops">0</div>
+                <div class="text-xs text-gray-500">Cacas</div>
+            </div>
+        </div>
+
+        <!-- Boutons d'action -->
+        <div id="action-buttons" class="flex gap-3 mb-6">
+            <button id="feeding-btn" class="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-2xl p-4 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transition-all duration-200 btn-scale">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                </svg>
+                <span class="font-semibold">Biberon</span>
+            </button>
+            <button id="diaper-btn" class="flex-1 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-2xl p-4 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transition-all duration-200 btn-scale">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                </svg>
+                <span class="font-semibold">Couche</span>
+            </button>
+        </div>
+
+        <!-- Formulaire -->
+        <div id="form-container" class="hidden bg-white/90 glass rounded-2xl p-6 mb-6 shadow-xl border border-white/50 slide-up">
+            <div class="flex items-center justify-between mb-4">
+                <h3 id="form-title" class="text-lg font-bold text-gray-800">🍼 Nouveau biberon</h3>
+                <button id="close-form" class="text-gray-400 hover:text-gray-600 text-xl">×</button>
+            </div>
+
+            <!-- Quantité biberon -->
+            <div id="amount-section" class="mb-4 hidden">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Quantité (ml)</label>
+                <input type="number" id="amount-input" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-blue-400 focus:outline-none transition-colors text-lg" placeholder="Ex: 120">
+            </div>
+
+            <!-- Pipi -->
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Pipi</label>
+                <div class="flex gap-2">
+                    <button id="pee-yes" class="flex-1 py-3 rounded-xl font-medium transition-all bg-gray-100 text-gray-600 hover:bg-gray-200">Oui 💧</button>
+                    <button id="pee-no" class="flex-1 py-3 rounded-xl font-medium transition-all bg-gray-500 text-white shadow-lg">Non</button>
+                </div>
+            </div>
+
+            <!-- Caca -->
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Caca</label>
+                <div class="flex gap-2 mb-3">
+                    <button id="poop-yes" class="flex-1 py-3 rounded-xl font-medium transition-all bg-gray-100 text-gray-600 hover:bg-gray-200">Oui 💩</button>
+                    <button id="poop-no" class="flex-1 py-3 rounded-xl font-medium transition-all bg-gray-500 text-white shadow-lg">Non</button>
+                </div>
+
+                <!-- Consistance -->
+                <div id="consistency-section" class="hidden">
+                    <label class="block text-sm font-medium text-gray-600 mb-2">Consistance</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button data-consistency="liquide" class="consistency-btn py-2 px-3 rounded-xl text-sm font-medium transition-all bg-yellow-100 text-yellow-800 hover:ring-1 hover:ring-orange-300">💧 Liquide</button>
+                        <button data-consistency="molle" class="consistency-btn py-2 px-3 rounded-xl text-sm font-medium transition-all bg-orange-100 text-orange-800 hover:ring-1 hover:ring-orange-300">🟡 Molle</button>
+                        <button data-consistency="normale" class="consistency-btn py-2 px-3 rounded-xl text-sm font-medium transition-all bg-green-100 text-green-800 hover:ring-1 hover:ring-orange-300">🟤 Normale</button>
+                        <button data-consistency="dure" class="consistency-btn py-2 px-3 rounded-xl text-sm font-medium transition-all bg-red-100 text-red-800 hover:ring-1 hover:ring-orange-300">🔴 Dure</button>
+                    </div>
+                </div>
+            </div>
+
+            <button id="save-btn" class="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-200 btn-scale disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                Enregistrer
+            </button>
+        </div>
+
+        <!-- Paramètres -->
+        <div id="settings-container" class="hidden bg-white/95 glass rounded-2xl p-6 mb-6 shadow-xl border border-white/50 slide-up">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+                    <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                    Paramètres famille
+                </h3>
+                <button id="close-settings" class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-all">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Informations de Loan -->
+            <div class="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
+                <h4 class="font-semibold text-blue-800 mb-3 flex items-center gap-2">
+                    <span class="text-lg">👶</span>
+                    Informations de Loan
+                </h4>
+                <div class="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                        <span class="text-blue-700 font-medium">Naissance :</span>
+                        <p class="text-blue-600">06/09/2025 à 06h38</p>
+                    </div>
+                    <div>
+                        <span class="text-blue-700 font-medium">Âge :</span>
+                        <p class="text-blue-600"><span id="settings-age">4</span> jours</p>
+                    </div>
+                    <div>
+                        <span class="text-blue-700 font-medium">Poids :</span>
+                        <p class="text-blue-600">3.290 kg</p>
+                    </div>
+                    <div>
+                        <span class="text-blue-700 font-medium">Taille :</span>
+                        <p class="text-blue-600">48 cm</p>
+                    </div>
+                </div>
+                <div class="mt-3 pt-3 border-t border-blue-200">
+                    <span class="text-blue-700 font-medium">Parents :</span>
+                    <p class="text-blue-600">Papa Dylan & Maman Chloé 💙</p>
+                </div>
+            </div>
+
+            <!-- Message de statut -->
+            <div id="import-message" class="hidden mb-4 p-3 bg-blue-50 border border-blue-200 rounded-xl text-blue-800 text-sm"></div>
+
+            <!-- Export/Import - Maintenant optionnel -->
+            <div class="mb-6">
+                <h4 class="font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path>
+                    </svg>
+                    Export/Import (sauvegarde locale)
+                </h4>
+                <p class="text-xs text-gray-500 mb-3">Optionnel : pour sauvegarde de sécurité uniquement</p>
+                <div class="flex gap-2">
+                    <button id="export-btn" class="flex-1 bg-gray-400 text-white py-2 px-3 rounded-lg text-sm">
+                        Export
+                    </button>
+                    <label class="flex-1 bg-gray-400 text-white py-2 px-3 rounded-lg text-sm text-center cursor-pointer">
+                        Import
+                        <input type="file" id="import-input" accept=".json" class="hidden">
+                    </label>
+                </div>
+            </div> justify-center gap-2 cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"></path>
+                        </svg>
+                        Importer
+                        <input type="file" id="import-input" accept=".json" class="hidden">
+                    </label>
+                </div>
+            </div>
+
+            <!-- Statistiques -->
+            <div class="mb-6 p-4 bg-gray-50 rounded-xl">
+                <h4 class="font-semibold text-gray-700 mb-2">📊 Statistiques</h4>
+                <div class="text-sm text-gray-600 space-y-1">
+                    <p>Total d'entrées : <strong id="total-entries">0</strong></p>
+                    <p>Première entrée : <strong id="first-entry">Aucune</strong></p>
+                    <p>Dernière entrée : <strong id="last-entry">Aucune</strong></p>
+                </div>
+            </div>
+
+            <!-- Réinitialisation -->
+            <div>
+                <button id="reset-btn" class="w-full bg-gradient-to-r from-red-500 to-red-600 text-white py-3 rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-200 btn-scale">
+                    🗑️ Effacer toutes les données
+                </button>
+            </div>
+        </div>
+
+        <!-- Historique -->
+        <div id="history-section" class="space-y-3">
+            <h3 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+                Historique
+            </h3>
+            
+            <div id="entries-container">
+                <div id="no-entries" class="bg-white/60 glass rounded-2xl p-8 text-center border border-white/50">
+                    <div class="w-12 h-12 text-4xl text-gray-400 mx-auto mb-3">👶</div>
+                    <p class="text-gray-500">Aucune entrée pour Loan</p>
+                    <p class="text-sm text-gray-400">Ajoutez le premier biberon ou changement de couche!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const BABY_BIRTH_DATE = new Date('2025-09-06T06:38:00');
+        const BABY_INFO = {
+            name: 'Loan',
+            birthWeight: 3.290,
+            birthLength: 48,
+            parents: ['Dylan', 'Chloé']
+        };
+
+        // Variables d'état
+        let entries = [];
+        let currentEntry = {
+            type: '',
+            amount: '',
+            hasPee: false,
+            hasPoop: false,
+            poopConsistency: '',
+            timestamp: new Date().toISOString()
+        };
+
+        // Éléments DOM
+        const elements = {
+            babyAge: document.getElementById('baby-age'),
+            settingsAge: document.getElementById('settings-age'),
+            totalMilk: document.getElementById('total-milk'),
+            totalPees: document.getElementById('total-pees'),
+            totalPoops: document.getElementById('total-poops'),
+            actionButtons: document.getElementById('action-buttons'),
+            formContainer: document.getElementById('form-container'),
+            settingsContainer: document.getElementById('settings-container'),
+            historySection: document.getElementById('history-section'),
+            entriesContainer: document.getElementById('entries-container'),
+            noEntries: document.getElementById('no-entries'),
+            formTitle: document.getElementById('form-title'),
+            amountSection: document.getElementById('amount-section'),
+            amountInput: document.getElementById('amount-input'),
+            consistencySection: document.getElementById('consistency-section'),
+            importMessage: document.getElementById('import-message'),
+            totalEntries: document.getElementById('total-entries'),
+            firstEntry: document.getElementById('first-entry'),
+            lastEntry: document.getElementById('last-entry')
+        };
+
+        // Calcul de l'âge
+        function calculateAge() {
+            const now = new Date();
+            const birthDate = new Date(BABY_BIRTH_DATE);
+            
+            // Réinitialiser les heures pour calculer uniquement les jours complets
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const birth = new Date(birthDate.getFullYear(), birthDate.getMonth(), birthDate.getDate());
+            
+            const diffTime = today - birth;
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            
+            return Math.max(0, diffDays); // Au minimum 0 jours
+        }
+
+        // Formatage des dates
+        function formatTime(timestamp) {
+            return new Date(timestamp).toLocaleTimeString('fr-FR', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function formatDate(timestamp) {
+            return new Date(timestamp).toLocaleDateString('fr-FR', {
+                weekday: 'long',
+                day: 'numeric',
+                month: 'long'
+            });
+        }
+
+        // Chargement et sauvegarde des données
+        function loadEntries() {
+            const saved = localStorage.getItem('babyTrackerEntries');
+            if (saved) {
+                entries = JSON.parse(saved);
+            }
+        }
+
+        function saveEntries() {
+            localStorage.setItem('babyTrackerEntries', JSON.stringify(entries));
+        }
+
+        // Mise à jour de l'affichage
+        function updateDisplay() {
+            const age = calculateAge();
+            elements.babyAge.textContent = age;
+            elements.settingsAge.textContent = age;
+
+            // Statistiques du jour
+            const today = new Date().toDateString();
+            const todayEntries = entries.filter(entry => {
+                return new Date(entry.timestamp).toDateString() === today;
+            });
+
+            const todayFeedings = todayEntries.filter(entry => entry.type === 'feeding');
+            const totalMilk = todayFeedings.reduce((sum, entry) => sum + parseInt(entry.amount || 0), 0);
+            const todayPees = todayEntries.filter(entry => entry.hasPee).length;
+            const todayPoops = todayEntries.filter(entry => entry.hasPoop).length;
+
+            elements.totalMilk.textContent = totalMilk + 'ml';
+            elements.totalPees.textContent = todayPees;
+            elements.totalPoops.textContent = todayPoops;
+
+            // Statistiques générales
+            elements.totalEntries.textContent = entries.length;
+            elements.firstEntry.textContent = entries.length > 0 ? formatDate(entries[entries.length - 1].timestamp) : 'Aucune';
+            elements.lastEntry.textContent = entries.length > 0 ? formatDate(entries[0].timestamp) : 'Aucune';
+
+            updateHistory();
+        }
+
+        // Mise à jour de l'historique
+        function updateHistory() {
+            if (entries.length === 0) {
+                elements.noEntries.style.display = 'block';
+                elements.entriesContainer.innerHTML = '';
+                elements.entriesContainer.appendChild(elements.noEntries);
+                return;
+            }
+
+            elements.noEntries.style.display = 'none';
+            elements.entriesContainer.innerHTML = '';
+
+            entries.forEach(entry => {
+                const entryDiv = document.createElement('div');
+                entryDiv.className = 'bg-white/80 glass rounded-2xl p-4 shadow-sm border border-white/50 fade-in';
+
+                const consistencyInfo = getConsistencyInfo(entry.poopConsistency);
+                
+                entryDiv.innerHTML = `
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="flex items-center gap-2">
+                            ${entry.type === 'feeding' ? 
+                                '<svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>' :
+                                '<div class="text-lg">👶</div>'
+                            }
+                            <span class="font-semibold text-gray-800">
+                                ${entry.type === 'feeding' ? 'Biberon' : 'Couche'}
+                            </span>
+                        </div>
+                        <div class="flex items-center gap-1 text-sm text-gray-500">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            ${formatTime(entry.timestamp)}
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 text-sm">
+                        ${entry.type === 'feeding' && entry.amount ? 
+                            `<span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-medium">${entry.amount}ml</span>` : ''
+                        }
+                        ${entry.hasPee ? 
+                            '<span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full">💧 Pipi</span>' : ''
+                        }
+                        ${entry.hasPoop ? 
+                            `<span class="${consistencyInfo.color} px-3 py-1 rounded-full">${consistencyInfo.emoji} ${consistencyInfo.label}</span>` : ''
+                        }
+                    </div>
+                `;
+                
+                elements.entriesContainer.appendChild(entryDiv);
+            });
+        }
+
+        // Informations de consistance
+        function getConsistencyInfo(consistency) {
+            const options = {
+                'liquide': { label: 'Liquide', color: 'bg-yellow-100 text-yellow-800', emoji: '💧' },
+                'molle': { label: 'Molle', color: 'bg-orange-100 text-orange-800', emoji: '🟡' },
+                'normale': { label: 'Normale', color: 'bg-green-100 text-green-800', emoji: '🟤' },
+                'dure': { label: 'Dure', color: 'bg-red-100 text-red-800', emoji: '🔴' }
+            };
+            return options[consistency] || { label: 'Caca', color: 'bg-orange-100 text-orange-800', emoji: '💩' };
+        }
+
+        // Gestion des formulaires
+        function showForm(type) {
+            currentEntry = {
+                type: type,
+                amount: '',
+                hasPee: false,
+                hasPoop: false,
+                poopConsistency: '',
+                timestamp: new Date().toISOString()
+            };
+
+            elements.actionButtons.style.display = 'none';
+            elements.settingsContainer.style.display = 'none';
+            elements.formContainer.style.display = 'block';
+            elements.historySection.style.display = 'none';
+
+            if (type === 'feeding') {
+                elements.formTitle.textContent = '🍼 Nouveau biberon';
+                elements.amountSection.style.display = 'block';
+                elements.amountInput.focus();
+            } else {
+                elements.formTitle.textContent = '👶 Nouvelle couche';
+                elements.amountSection.style.display = 'none';
+            }
+
+            resetFormButtons();
+        }
+
+        function hideForm() {
+            elements.formContainer.style.display = 'none';
+            elements.settingsContainer.style.display = 'none';
+            elements.actionButtons.style.display = 'flex';
+            elements.historySection.style.display = 'block';
+            elements.amountInput.value = '';
+        }
+
+        function showSettings() {
+            elements.settingsContainer.style.display = 'block';
+            elements.formContainer.style.display = 'none';
+            elements.actionButtons.style.display = 'none';
+            elements.historySection.style.display = 'none';
+            updateDisplay();
+        }
+
+        function hideSettings() {
+            elements.settingsContainer.style.display = 'none';
+            elements.actionButtons.style.display = 'flex';
+            elements.historySection.style.display = 'block';
+        }
+
+        function resetFormButtons() {
+            // Reset boutons pipi
+            document.getElementById('pee-yes').className = 'flex-1 py-3 rounded-xl font-medium transition-all bg-gray-100 text-gray-600 hover:bg-gray-200';
+            document.getElementById('pee-no').className = 'flex-1 py-3 rounded-xl font-medium transition-all bg-gray-500 text-white shadow-lg';
+
+            // Reset boutons caca
+            document.getElementById('poop-yes').className = 'flex-1 py-3 rounded-xl font-medium transition-all bg-gray-100 text-gray-600 hover:bg-gray-200';
+            document.getElementById('poop-no').className = 'flex-1 py-3 rounded-xl font-medium transition-all bg-gray-500 text-white shadow-lg';
+
+            // Reset boutons consistance
+            document.querySelectorAll('.consistency-btn').forEach(btn => {
+                const consistency = btn.dataset.consistency;
+                const info = getConsistencyInfo(consistency);
+                btn.className = `consistency-btn py-2 px-3 rounded-xl text-sm font-medium transition-all ${info.color} hover:ring-1 hover:ring-orange-300`;
+            });
+
+            elements.consistencySection.style.display = 'none';
+        }
+
+        // Ajout d'une entrée
+        function addEntry() {
+            if (currentEntry.type === 'feeding' && !elements.amountInput.value) return;
+
+            if (currentEntry.type === 'feeding') {
+                currentEntry.amount = elements.amountInput.value;
+            }
+
+            const newEntry = {
+                ...currentEntry,
+                id: Date.now(),
+                timestamp: new Date().toISOString()
+            };
+
+            entries.unshift(newEntry);
+            saveEntries();
+            updateDisplay();
+            hideForm();
+
+            showMessage('✅ Entrée enregistrée avec succès !');
+        }
+
+        // Export des données
+        function exportData() {
+            const dataToExport = {
+                babyInfo: BABY_INFO,
+                entries: entries,
+                exportDate: new Date().toISOString(),
+                version: '1.0'
+            };
+
+            const dataStr = JSON.stringify(dataToExport, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `suivi-loan-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+
+            showMessage('✅ Données de Loan exportées avec succès !');
+        }
+
+        // Import des données
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+
+                    if (importedData.entries && Array.isArray(importedData.entries)) {
+                        const existingIds = new Set(entries.map(entry => entry.id));
+                        const newEntries = importedData.entries.filter(entry => !existingIds.has(entry.id));
+
+                        entries = [...entries, ...newEntries].sort((a, b) => 
+                            new Date(b.timestamp) - new Date(a.timestamp)
+                        );
+
+                        saveEntries();
+                        updateDisplay();
+                        showMessage(`✅ ${newEntries.length} nouvelles entrées importées !`);
+                    } else {
+                        showMessage('❌ Format de fichier invalide');
+                    }
+                } catch (error) {
+                    showMessage('❌ Erreur lors de l\'import du fichier');
+                }
+            };
+
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        // Réinitialisation des données
+        function resetData() {
+            if (confirm('⚠️ Êtes-vous sûr de vouloir effacer toutes les données ? Cette action est irréversible.')) {
+                entries = [];
+                saveEntries();
+                updateDisplay();
+                showMessage('🗑️ Toutes les données ont été supprimées');
+            }
+        }
+
+        // Affichage des messages
+        function showMessage(message) {
+            elements.importMessage.textContent = message;
+            elements.importMessage.style.display = 'block';
+            setTimeout(() => {
+                elements.importMessage.style.display = 'none';
+            }, 3000);
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            updateFirebaseStatus('🔄 Connexion...');
+            
+            // Attendre que Firebase soit prêt
+            if (window.firebaseReady) {
+                initializeFirebase();
+            } else {
+                document.addEventListener('firebase-ready', initializeFirebase);
+            }
+            
+            // Fallback: charger depuis localStorage en attendant
+            loadEntriesLocal();
+            updateDisplay();
+
+            // Boutons principaux
+            document.getElementById('feeding-btn').addEventListener('click', () => showForm('feeding'));
+            document.getElementById('diaper-btn').addEventListener('click', () => showForm('diaper'));
+            document.getElementById('settings-btn').addEventListener('click', showSettings);
+
+            // Formulaire
+            document.getElementById('close-form').addEventListener('click', hideForm);
+            document.getElementById('save-btn').addEventListener('click', addEntry);
+
+            // Boutons pipi
+            document.getElementById('pee-yes').addEventListener('click', function() {
+                currentEntry.hasPee = true;
+                this.className = 'flex-1 py-3 rounded-xl font-medium transition-all bg-blue-500 text-white shadow-lg';
+                document.getElementById('pee-no').className = 'flex-1 py-3 rounded-xl font-medium transition-all bg-gray-100 text-gray-600 hover:bg-gray-200';
+            });
+
+            document.getElementById('pee-no').addEventListener('click', function() {
+                currentEntry.hasPee = false;
+                this.className = 'flex-1 py-3 rounded-xl font-medium transition-all bg-gray-500 text-white shadow-lg';
+                document.getElementById('pee-yes').className = 'flex-1 py-3 rounded-xl font-medium transition-all bg-gray-100 text-gray-600 hover:bg-gray-200';
+            });
+
+            // Boutons caca
+            document.getElementById('poop-yes').addEventListener('click', function() {
+                currentEntry.hasPoop = true;
+                this.className = 'flex-1 py-3 rounded-xl font-medium transition-all bg-orange-500 text-white shadow-lg';
+                document.getElementById('poop-no').className = 'flex-1 py-3 rounded-xl font-medium transition-all bg-gray-100 text-gray-600 hover:bg-gray-200';
+                elements.consistencySection.style.display = 'block';
+            });
+
+            document.getElementById('poop-no').addEventListener('click', function() {
+                currentEntry.hasPoop = false;
+                currentEntry.poopConsistency = '';
+                this.className = 'flex-1 py-3 rounded-xl font-medium transition-all bg-gray-500 text-white shadow-lg';
+                document.getElementById('poop-yes').className = 'flex-1 py-3 rounded-xl font-medium transition-all bg-gray-100 text-gray-600 hover:bg-gray-200';
+                elements.consistencySection.style.display = 'none';
+                
+                // Reset boutons consistance
+                document.querySelectorAll('.consistency-btn').forEach(btn => {
+                    const consistency = btn.dataset.consistency;
+                    const info = getConsistencyInfo(consistency);
+                    btn.className = `consistency-btn py-2 px-3 rounded-xl text-sm font-medium transition-all ${info.color} hover:ring-1 hover:ring-orange-300`;
+                });
+            });
+
+            // Boutons consistance
+            document.querySelectorAll('.consistency-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const consistency = this.dataset.consistency;
+                    currentEntry.poopConsistency = consistency;
+                    
+                    // Reset tous les boutons
+                    document.querySelectorAll('.consistency-btn').forEach(b => {
+                        const c = b.dataset.consistency;
+                        const info = getConsistencyInfo(c);
+                        b.className = `consistency-btn py-2 px-3 rounded-xl text-sm font-medium transition-all ${info.color} hover:ring-1 hover:ring-orange-300`;
+                    });
+                    
+                    // Activer le bouton sélectionné
+                    const info = getConsistencyInfo(consistency);
+                    this.className = `consistency-btn py-2 px-3 rounded-xl text-sm font-medium transition-all ring-2 ring-orange-400 ${info.color}`;
+                });
+            });
+
+            // Paramètres
+            document.getElementById('close-settings').addEventListener('click', hideSettings);
+            document.getElementById('export-btn').addEventListener('click', exportData);
+            document.getElementById('import-input').addEventListener('change', importData);
+            document.getElementById('reset-btn').addEventListener('click', resetData);
+
+            // Validation du formulaire en temps réel
+            elements.amountInput.addEventListener('input', function() {
+                const saveBtn = document.getElementById('save-btn');
+                if (currentEntry.type === 'feeding' && !this.value) {
+                    saveBtn.disabled = true;
+                } else {
+                    saveBtn.disabled = false;
+                }
+            });
+        });
+    </script>
+</body>
+</html>
