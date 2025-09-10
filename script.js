@@ -881,6 +881,12 @@ function addEntry() {
     const newEntry = { ...currentEntry };
 
     saveEntryToFirebase(newEntry);
+     if (newEntry.type === 'feeding') {
+        setTimeout(() => {
+            updateNextFeedingDisplay();
+        }, 500); // Petit délai pour laisser le temps à Firebase de se synchroniser
+    }
+    
     hideForm();
 }
 function editEntry(entryId) {
@@ -1536,27 +1542,287 @@ function updateTipsContent() {
         tips = `
             <div class="bg-white/80 glass rounded-2xl p-4 shadow-sm border border-white/50 mb-4">
                 <h4 class="text-sm font-semibold text-gray-800 mb-3">🍼 Premiers jours (${age} jours)</h4>
-                <ul class="text-sm text-gray-700 space-y-2">
-                    <li>• Proposer le biberon toutes les 2-3h, même la nuit</li>
-                    <li>• Faire un rot après chaque biberon</li>
-                    <li>• Surveiller les signes de faim : pleurs, suçotement</li>
-                    <li>• Température du lait : 37°C (tiède sur le poignet)</li>
-                </ul>
+                <div class="text-sm text-gray-700 space-y-3">
+                    <div class="bg-blue-50 p-3 rounded-lg">
+                        <h5 class="font-medium text-blue-800 mb-2">💝 Contact et lien affectif</h5>
+                        <ul class="space-y-1 text-xs">
+                            <li>• Contact peau à peau : régule la température et favorise la mise au sein</li>
+                            <li>• Répondre aux sourires spontanés pour créer des associations positives</li>
+                            <li>• Parler doucement, chanter des berceuses, maintenir le contact visuel</li>
+                            <li>• Le toucher est le premier sens développé - chaque caresse compte</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="bg-green-50 p-3 rounded-lg">
+                        <h5 class="font-medium text-green-800 mb-2">🍼 Alimentation à la demande</h5>
+                        <ul class="space-y-1 text-xs">
+                            <li>• 6-8 tétées par 24h - suivre les signaux de faim du bébé</li>
+                            <li>• Signes précoces : lèche les lèvres, agite les mains, tourne la tête</li>
+                            <li>• Consoler d'abord si bébé pleure, puis proposer le sein/biberon</li>
+                            <li>• Contact peau à peau avant la tétée pour éveiller les réflexes</li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-yellow-50 p-3 rounded-lg">
+                        <h5 class="font-medium text-yellow-800 mb-2">🌙 Rythmes et sommeil</h5>
+                        <ul class="space-y-1 text-xs">
+                            <li>• Pas de routine fixe encore - c'est normal</li>
+                            <li>• Jour : lumière naturelle, atmosphère animée</li>
+                            <li>• Nuit : obscurité, voix basse, changes rapides sans jeu</li>
+                            <li>• Coucher sur le dos, matelas ferme, température 18-20°C</li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-purple-50 p-3 rounded-lg">
+                        <h5 class="font-medium text-purple-800 mb-2">😢 Comprendre les pleurs</h5>
+                        <ul class="space-y-1 text-xs">
+                            <li>• Les pleurs = communication d'un besoin, pas un caprice</li>
+                            <li>• Consoler ne "gâte" pas - construit la confiance</li>
+                            <li>• Acceptable de déposer bébé en sécurité et prendre une pause</li>
+                        </ul>
+                    </div>
+                </div>
             </div>
         `;
-    } else if (age <= 30) {
+    } else if (age >= 8 && age <= 30) {
         tips = `
             <div class="bg-white/80 glass rounded-2xl p-4 shadow-sm border border-white/50 mb-4">
                 <h4 class="text-sm font-semibold text-gray-800 mb-3">👶 Premier mois (${age} jours)</h4>
-                <ul class="text-sm text-gray-700 space-y-2">
-                    <li>• Le rythme commence à se stabiliser</li>
-                    <li>• Possibles coliques du nourrisson (massages du ventre)</li>
-                    <li>• Surveiller la prise de poids (pesée hebdomadaire)</li>
-                    <li>• Maintenir l'hygiène stricte des biberons</li>
-                </ul>
+                <div class="text-sm text-gray-700 space-y-3">
+                    <div class="bg-blue-50 p-3 rounded-lg">
+                        <h5 class="font-medium text-blue-800 mb-2">🏃 Développement moteur</h5>
+                        <ul class="space-y-1 text-xs">
+                            <li>• "Tummy time" : renforce le cou et les bras</li>
+                            <li>• Exploration des mains et pieds</li>
+                            <li>• Meilleure maîtrise de la tête</li>
+                            <li>• Mouvements plus coordonnés</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="bg-green-50 p-3 rounded-lg">
+                        <h5 class="font-medium text-green-800 mb-2">😊 Éveil social</h5>
+                        <ul class="space-y-1 text-xs">
+                            <li>• Premiers vrais sourires en réponse</li>
+                            <li>• Suit les objets du regard</li>
+                            <li>• Début du babillage pour exprimer la joie</li>
+                            <li>• Distingue ses parents des autres</li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-orange-50 p-3 rounded-lg">
+                        <h5 class="font-medium text-orange-800 mb-2">🎮 Jeux et activités</h5>
+                        <ul class="space-y-1 text-xs">
+                            <li>• Jeux de "coucou" - apprend la permanence de l'objet</li>
+                            <li>• Cartes à contraste élevé</li>
+                            <li>• Mobiles colorés, miroirs incassables</li>
+                            <li>• Le parent est le meilleur "jouet"</li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-red-50 p-3 rounded-lg">
+                        <h5 class="font-medium text-red-800 mb-2">😣 Gestion des coliques</h5>
+                        <ul class="space-y-1 text-xs">
+                            <li>• Massages doux du ventre (sens horaire)</li>
+                            <li>• Position "paresseux" sur l'avant-bras</li>
+                            <li>• Portage en écharpe, bercements, bruits blancs</li>
+                            <li>• Chaleur douce sur le ventre</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        `;
+    } else if (age >= 31 && age <= 60) {
+        tips = `
+            <div class="bg-white/80 glass rounded-2xl p-4 shadow-sm border border-white/50 mb-4">
+                <h4 class="text-sm font-semibold text-gray-800 mb-3">👶 Deuxième mois (${age} jours)</h4>
+                <div class="text-sm text-gray-700 space-y-3">
+                    <div class="bg-blue-50 p-3 rounded-lg">
+                        <h5 class="font-medium text-blue-800 mb-2">💪 Grandes étapes motrices</h5>
+                        <ul class="space-y-1 text-xs">
+                            <li>• Se soulève sur les avant-bras en position ventrale</li>
+                            <li>• Muscles du cou plus forts</li>
+                            <li>• Exploration active mains/pieds</li>
+                            <li>• Coordination œil-main s'améliore</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="bg-green-50 p-3 rounded-lg">
+                        <h5 class="font-medium text-green-800 mb-2">🗣️ Communication avancée</h5>
+                        <ul class="space-y-1 text-xs">
+                            <li>• Babillage structuré : "ba-ba", "ma-ma"</li>
+                            <li>• Distingue les émotions par le ton</li>
+                            <li>• Peut reconnaître son prénom</li>
+                            <li>• Interactions sociales plus riches</li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-purple-50 p-3 rounded-lg">
+                        <h5 class="font-medium text-purple-800 mb-2">🌙 Régression du sommeil (possible)</h5>
+                        <ul class="space-y-1 text-xs">
+                            <li>• Normal entre 2-4 mois : signe de développement sain</li>
+                            <li>• Maturation vers cycles de sommeil adulte</li>
+                            <li>• Encourager l'auto-apaisement</li>
+                            <li>• Rituel de coucher régulier et apaisant</li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-yellow-50 p-3 rounded-lg">
+                        <h5 class="font-medium text-yellow-800 mb-2">🎯 Stimulation appropriée</h5>
+                        <ul class="space-y-1 text-xs">
+                            <li>• Limiter transats/sièges-auto</li>
+                            <li>• Tapis de jeu pour éveil supervisé</li>
+                            <li>• Objets colorés, textures variées</li>
+                            <li>• Lecture à voix haute</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        `;
+    } else if (age >= 61 && age <= 120) {
+        tips = `
+            <div class="bg-white/80 glass rounded-2xl p-4 shadow-sm border border-white/50 mb-4">
+                <h4 class="text-sm font-semibold text-gray-800 mb-3">🌟 3-4 mois (${age} jours)</h4>
+                <div class="text-sm text-gray-700 space-y-3">
+                    <div class="bg-blue-50 p-3 rounded-lg">
+                        <h5 class="font-medium text-blue-800 mb-2">🤸 Mobilité accrue</h5>
+                        <ul class="space-y-1 text-xs">
+                            <li>• Début des retournements dos-ventre</li>
+                            <li>• Prend appui sur les jambes</li>
+                            <li>• Coordination œil-main développée</li>
+                            <li>• Attrape volontairement les objets</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="bg-green-50 p-3 rounded-lg">
+                        <h5 class="font-medium text-green-800 mb-2">👁️ Vision et perception</h5>
+                        <ul class="space-y-1 text-xs">
+                            <li>• Meilleure distinction des couleurs</li>
+                            <li>• Suit les objets en mouvement</li>
+                            <li>• Exploration bouche = découverte sensorielle</li>
+                            <li>• Vision s'affine considérablement</li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-orange-50 p-3 rounded-lg">
+                        <h5 class="font-medium text-orange-800 mb-2">🍼 Préparation diversification</h5>
+                        <ul class="space-y-1 text-xs">
+                            <li>• Lait reste la source principale jusqu'à 1 an</li>
+                            <li>• Possible introduction légumes/fruits vers 4-6 mois</li>
+                            <li>• Observer les signaux de prêtesse</li>
+                            <li>• Un aliment à la fois pour tester les réactions</li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-red-50 p-3 rounded-lg">
+                        <h5 class="font-medium text-red-800 mb-2">😴 Régression sommeil 4 mois</h5>
+                        <ul class="space-y-1 text-xs">
+                            <li>• Dure 2-6 semaines - patience nécessaire</li>
+                            <li>• Résultat de la maturation neurologique</li>
+                            <li>• Encourager l'auto-apaisement</li>
+                            <li>• Demander de l'aide si besoin</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        `;
+    } else if (age >= 121 && age <= 180) {
+        tips = `
+            <div class="bg-white/80 glass rounded-2xl p-4 shadow-sm border border-white/50 mb-4">
+                <h4 class="text-sm font-semibold text-gray-800 mb-3">🚀 4-6 mois (${age} jours)</h4>
+                <div class="text-sm text-gray-700 space-y-3">
+                    <div class="bg-blue-50 p-3 rounded-lg">
+                        <h5 class="font-medium text-blue-800 mb-2">🎯 Grand bond moteur</h5>
+                        <ul class="space-y-1 text-xs">
+                            <li>• Se retourne dans les 2 sens</li>
+                            <li>• S'assoit avec soutien puis seul</li>
+                            <li>• Force du haut du corps développée</li>
+                            <li>• Exploration active de l'environnement</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="bg-green-50 p-3 rounded-lg">
+                        <h5 class="font-medium text-green-800 mb-2">🍎 Diversification alimentaire</h5>
+                        <ul class="space-y-1 text-xs">
+                            <li>• Légumes/fruits : purées lisses, un à la fois</li>
+                            <li>• Céréales infantiles dès 4 mois</li>
+                            <li>• Protéines : 10g viande/poisson ou 1/4 œuf</li>
+                            <li>• Ne jamais forcer - exploration sensorielle</li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-purple-50 p-3 rounded-lg">
+                        <h5 class="font-medium text-purple-800 mb-2">🗣️ Communication complexe</h5>
+                        <ul class="space-y-1 text-xs">
+                            <li>• Chaînes de sons : "ba-ba", "dee-dee"</li>
+                            <li>• Répond à la négation "non"</li>
+                            <li>• Reconnaît son prénom</li>
+                            <li>• Exprime la joie par la voix</li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-yellow-50 p-3 rounded-lg">
+                        <h5 class="font-medium text-yellow-800 mb-2">🎮 Jeux adaptés</h5>
+                        <ul class="space-y-1 text-xs">
+                            <li>• Jouets à saisir et manipuler</li>
+                            <li>• Miroirs incassables</li>
+                            <li>• Jeux de mains et comptines</li>
+                            <li>• Objets de textures variées</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        `;
+    } else {
+        tips = `
+            <div class="bg-white/80 glass rounded-2xl p-4 shadow-sm border border-white/50 mb-4">
+                <h4 class="text-sm font-semibold text-gray-800 mb-3">🌟 Croissance avancée (${age} jours)</h4>
+                <div class="text-sm text-gray-700 space-y-3">
+                    <div class="bg-green-50 p-3 rounded-lg">
+                        <h5 class="font-medium text-green-800 mb-2">🚀 Développement avancé</h5>
+                        <ul class="space-y-1 text-xs">
+                            <li>• Exploration active et curiosité intense</li>
+                            <li>• Interaction sociale complexe</li>
+                            <li>• Personnalité qui s'affirme</li>
+                            <li>• Préparation aux prochaines étapes</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="bg-blue-50 p-3 rounded-lg">
+                        <h5 class="font-medium text-blue-800 mb-2">🍼 Alimentation diversifiée</h5>
+                        <ul class="space-y-1 text-xs">
+                            <li>• Lait reste principal jusqu'à 1 an</li>
+                            <li>• Diversification en cours</li>
+                            <li>• Texture adaptée à l'âge</li>
+                            <li>• Consulter le pédiatre pour conseils</li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-purple-50 p-3 rounded-lg">
+                        <h5 class="font-medium text-purple-800 mb-2">👨‍⚕️ Suivi médical</h5>
+                        <ul class="space-y-1 text-xs">
+                            <li>• Consultations régulières importantes</li>
+                            <li>• Stimulation sensorielle et motrice</li>
+                            <li>• Adaptation selon la croissance</li>
+                            <li>• Chaque enfant évolue à son rythme</li>
+                        </ul>
+                    </div>
+                </div>
             </div>
         `;
     }
+
+    // Ajouter une note médicale importante
+    tips += `
+        <div class="bg-red-50 border border-red-200 rounded-lg p-3 mt-4">
+            <div class="flex items-start gap-2">
+                <span class="text-red-500 text-lg">⚕️</span>
+                <div class="text-xs text-red-700">
+                    <strong>Important :</strong> Ces conseils sont informatifs. Pour toute question ou préoccupation, 
+                    consultez toujours votre pédiatre ou un professionnel de santé.
+                </div>
+            </div>
+        </div>
+    `;
 
     tipsContainer.innerHTML = tips;
 }
@@ -1584,7 +1850,10 @@ function updateDisplay() {
 
     updateDailyChart();
     updateHistory();
+    updateNextFeedingDisplay();
 }
+setInterval(updateNextFeedingDisplay, 60000);
+
 
 async function resetData() {
     if (confirm('⚠️ Êtes-vous sûr de vouloir effacer toutes les données ? Cette action est irréversible.')) {
@@ -1831,3 +2100,116 @@ window.setMilkPowderDate = setMilkPowderDate;
 window.setWaterBottleDateTime = setWaterBottleDateTime;
 window.clearMilkPowderDate = clearMilkPowderDate;
 window.clearWaterBottleDateTime = clearWaterBottleDateTime;
+
+
+function calculateNextFeeding() {
+    const age = calculateAge();
+    const now = new Date();
+    const dayStart = getDayStart(now);
+    const dayEnd = getDayEnd(now);
+
+    // Récupérer les biberons d'aujourd'hui
+    const todayFeedings = entries.filter(entry => {
+        const entryDate = new Date(entry.timestamp);
+        return entry.type === 'feeding' && entryDate >= dayStart && entryDate <= dayEnd;
+    });
+
+    if (todayFeedings.length === 0) {
+        return null; // Pas de biberon aujourd'hui
+    }
+
+    // Trier par ordre chronologique (plus récent en premier)
+    todayFeedings.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    const lastFeeding = todayFeedings[0];
+    const lastFeedingTime = new Date(lastFeeding.timestamp);
+
+    // Calculer l'intervalle selon l'âge
+    let intervalHours;
+    
+    if (age <= 7) {
+        intervalHours = 2.5; // 2h30 en moyenne pour les premiers jours
+    } else if (age <= 14) {
+        intervalHours = 3; // 3h pour la deuxième semaine
+    } else if (age <= 30) {
+        intervalHours = 3.5; // 3h30 pour le premier mois
+    } else if (age <= 60) {
+        intervalHours = 4; // 4h pour le deuxième mois
+    } else if (age <= 120) {
+        intervalHours = 4.5; // 4h30 pour 3-4 mois
+    } else {
+        intervalHours = 5; // 5h pour 4-6 mois
+    }
+
+    // Calculer l'heure du prochain biberon
+    const nextFeeding = new Date(lastFeedingTime);
+    nextFeeding.setHours(nextFeeding.getHours() + intervalHours);
+
+    return {
+        nextTime: nextFeeding,
+        lastFeeding: lastFeedingTime,
+        interval: intervalHours,
+        age: age
+    };
+}
+
+function updateNextFeedingDisplay() {
+    const nextFeedingInfo = calculateNextFeeding();
+    const container = document.getElementById('next-feeding-info');
+    
+    if (!container) {
+        console.warn('Container next-feeding-info non trouvé');
+        return;
+    }
+
+    if (!nextFeedingInfo) {
+        container.innerHTML = `
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                <div class="flex items-center gap-2">
+                    <span class="text-blue-600 text-lg">🍼</span>
+                    <div>
+                        <p class="text-sm font-medium text-blue-800">Premier biberon de la journée</p>
+                        <p class="text-xs text-blue-600">Donnez le biberon selon les signaux de faim</p>
+                    </div>
+                </div>
+            </div>
+        `;
+        return;
+    }
+
+    const now = new Date();
+    const timeDiff = nextFeedingInfo.nextTime - now;
+    const minutesRemaining = Math.ceil(timeDiff / (1000 * 60));
+    
+    let statusClass, statusIcon, statusText;
+    
+    if (minutesRemaining <= 0) {
+        statusClass = 'bg-green-50 border-green-200';
+        statusIcon = '✅';
+        statusText = 'C\'est l\'heure !';
+    } else if (minutesRemaining <= 30) {
+        statusClass = 'bg-orange-50 border-orange-200';
+        statusIcon = '⏰';
+        statusText = `Dans ${minutesRemaining} min`;
+    } else {
+        statusClass = 'bg-blue-50 border-blue-200';
+        statusIcon = '🍼';
+        statusText = `Dans ${Math.floor(minutesRemaining / 60)}h${minutesRemaining % 60 > 0 ? String(minutesRemaining % 60).padStart(2, '0') : ''}`;
+    }
+
+    container.innerHTML = `
+        <div class="${statusClass} border rounded-lg p-3 mb-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <span class="text-lg">${statusIcon}</span>
+                    <div>
+                        <p class="text-sm font-medium">Prochain biberon à : ${formatTime(nextFeedingInfo.nextTime.toISOString())}</p>
+                        <p class="text-xs text-gray-600">${statusText} (intervalle ${nextFeedingInfo.interval}h pour ${nextFeedingInfo.age} jours)</p>
+                    </div>
+                </div>
+                <div class="text-right text-xs text-gray-500">
+                    <p>Dernier : ${formatTime(nextFeedingInfo.lastFeeding.toISOString())}</p>
+                </div>
+            </div>
+        </div>
+    `;
+}
