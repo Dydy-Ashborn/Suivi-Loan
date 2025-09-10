@@ -2101,7 +2101,6 @@ window.setWaterBottleDateTime = setWaterBottleDateTime;
 window.clearMilkPowderDate = clearMilkPowderDate;
 window.clearWaterBottleDateTime = clearWaterBottleDateTime;
 
-
 function calculateNextFeeding() {
     const age = calculateAge();
     const now = new Date();
@@ -2123,31 +2122,32 @@ function calculateNextFeeding() {
     const lastFeeding = todayFeedings[0];
     const lastFeedingTime = new Date(lastFeeding.timestamp);
 
-    // Calculer l'intervalle selon l'âge
-    let intervalHours;
+    // Calculer l'intervalle selon l'âge en MINUTES pour plus de précision
+    let intervalMinutes;
     
     if (age <= 7) {
-        intervalHours = 2.5; // 2h30 en moyenne pour les premiers jours
+        intervalMinutes = 150; // 2h30 = 150 minutes
     } else if (age <= 14) {
-        intervalHours = 3; // 3h pour la deuxième semaine
+        intervalMinutes = 180; // 3h = 180 minutes
     } else if (age <= 30) {
-        intervalHours = 3.5; // 3h30 pour le premier mois
+        intervalMinutes = 210; // 3h30 = 210 minutes
     } else if (age <= 60) {
-        intervalHours = 4; // 4h pour le deuxième mois
+        intervalMinutes = 240; // 4h = 240 minutes
     } else if (age <= 120) {
-        intervalHours = 4.5; // 4h30 pour 3-4 mois
+        intervalMinutes = 270; // 4h30 = 270 minutes
     } else {
-        intervalHours = 5; // 5h pour 4-6 mois
+        intervalMinutes = 300; // 5h = 300 minutes
     }
 
-    // Calculer l'heure du prochain biberon
+    // Calculer l'heure du prochain biberon en ajoutant les minutes
     const nextFeeding = new Date(lastFeedingTime);
-    nextFeeding.setHours(nextFeeding.getHours() + intervalHours);
+    nextFeeding.setMinutes(nextFeeding.getMinutes() + intervalMinutes);
 
     return {
         nextTime: nextFeeding,
         lastFeeding: lastFeedingTime,
-        interval: intervalHours,
+        intervalMinutes: intervalMinutes,
+        intervalHours: intervalMinutes / 60, // Conversion pour l'affichage
         age: age
     };
 }
@@ -2191,9 +2191,31 @@ function updateNextFeedingDisplay() {
         statusIcon = '⏰';
         statusText = `Dans ${minutesRemaining} min`;
     } else {
+        // Affichage plus précis pour les heures/minutes
+        const hoursRemaining = Math.floor(minutesRemaining / 60);
+        const minsRemaining = minutesRemaining % 60;
+        
         statusClass = 'bg-blue-50 border-blue-200';
         statusIcon = '🍼';
-        statusText = `Dans ${Math.floor(minutesRemaining / 60)}h${minutesRemaining % 60 > 0 ? String(minutesRemaining % 60).padStart(2, '0') : ''}`;
+        
+        if (hoursRemaining > 0 && minsRemaining > 0) {
+            statusText = `Dans ${hoursRemaining}h${String(minsRemaining).padStart(2, '0')}`;
+        } else if (hoursRemaining > 0) {
+            statusText = `Dans ${hoursRemaining}h`;
+        } else {
+            statusText = `Dans ${minsRemaining} min`;
+        }
+    }
+
+    // Formater l'intervalle pour l'affichage (convertir minutes en heures/minutes)
+    const intervalHours = Math.floor(nextFeedingInfo.intervalMinutes / 60);
+    const intervalMins = nextFeedingInfo.intervalMinutes % 60;
+    
+    let intervalDisplay;
+    if (intervalMins === 0) {
+        intervalDisplay = `${intervalHours}h`;
+    } else {
+        intervalDisplay = `${intervalHours}h${String(intervalMins).padStart(2, '0')}`;
     }
 
     container.innerHTML = `
@@ -2203,7 +2225,7 @@ function updateNextFeedingDisplay() {
                     <span class="text-lg">${statusIcon}</span>
                     <div>
                         <p class="text-sm font-medium">Prochain biberon à : ${formatTime(nextFeedingInfo.nextTime.toISOString())}</p>
-                        <p class="text-xs text-gray-600">${statusText} (intervalle ${nextFeedingInfo.interval}h pour ${nextFeedingInfo.age} jours)</p>
+                        <p class="text-xs text-gray-600">${statusText} (intervalle ${intervalDisplay} pour ${nextFeedingInfo.age} jours)</p>
                     </div>
                 </div>
                 <div class="text-right text-xs text-gray-500">
