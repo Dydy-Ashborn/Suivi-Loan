@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
@@ -73,6 +72,28 @@
             <p class="text-xs text-gray-500 mt-2">Né le 06/09/2025 à 06h38</p>
         </div>
 
+        <!-- Guide nutritionnel -->
+        <div class="mb-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-3 border border-blue-200">
+            <h4 class="text-sm font-semibold text-blue-800 mb-2 flex items-center gap-2">
+                🍼 Recommandations jour <span id="guide-age">4</span>
+            </h4>
+            <div id="feeding-guide" class="text-xs text-blue-700">
+                <div class="grid grid-cols-2 gap-2 mb-2">
+                    <div>
+                        <strong>📏 Volume :</strong><br>
+                        <span class="text-blue-900 font-medium">45–60ml</span>
+                    </div>
+                    <div>
+                        <strong>⏰ Fréquence :</strong><br>
+                        <span class="text-blue-900 font-medium">6–8 fois/24h</span>
+                    </div>
+                </div>
+                <div class="text-xs text-blue-600 italic">
+                    💡 Adaptation au lait, souvent nécessaire de compléter un peu
+                </div>
+            </div>
+        </div>
+
         <!-- Statistiques du jour -->
         <div class="grid grid-cols-3 gap-3 mb-6">
             <div class="bg-white/80 glass rounded-2xl p-4 text-center shadow-sm border border-white/50">
@@ -119,8 +140,12 @@
 
             <!-- Quantité biberon -->
             <div id="amount-section" class="mb-4 hidden">
-                <label class="block text-sm font-medium text-gray-700 mb-2">Quantité (ml)</label>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Quantité (ml)
+                    <span id="recommended-amount" class="text-xs text-blue-600 font-normal"></span>
+                </label>
                 <input type="number" id="amount-input" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-blue-400 focus:outline-none transition-colors text-lg" placeholder="Ex: 120">
+                <div id="amount-feedback" class="text-xs mt-1 hidden"></div>
             </div>
 
             <!-- Pipi -->
@@ -140,14 +165,43 @@
                     <button id="poop-no" class="flex-1 py-3 rounded-xl font-medium transition-all bg-gray-500 text-white shadow-lg">Non</button>
                 </div>
 
-                <!-- Consistance -->
+                <!-- Détails caca -->
                 <div id="consistency-section" class="hidden">
-                    <label class="block text-sm font-medium text-gray-600 mb-2">Consistance</label>
-                    <div class="grid grid-cols-2 gap-2">
-                        <button data-consistency="liquide" class="consistency-btn py-2 px-3 rounded-xl text-sm font-medium transition-all bg-yellow-100 text-yellow-800 hover:ring-1 hover:ring-orange-300">💧 Liquide</button>
-                        <button data-consistency="molle" class="consistency-btn py-2 px-3 rounded-xl text-sm font-medium transition-all bg-orange-100 text-orange-800 hover:ring-1 hover:ring-orange-300">🟡 Molle</button>
-                        <button data-consistency="normale" class="consistency-btn py-2 px-3 rounded-xl text-sm font-medium transition-all bg-green-100 text-green-800 hover:ring-1 hover:ring-orange-300">🟤 Normale</button>
-                        <button data-consistency="dure" class="consistency-btn py-2 px-3 rounded-xl text-sm font-medium transition-all bg-red-100 text-red-800 hover:ring-1 hover:ring-orange-300">🔴 Dure</button>
+                    <div class="space-y-4">
+                        <!-- Quantité -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-2">Quantité</label>
+                            <select id="poop-quantity" class="w-full px-3 py-2 rounded-xl border-2 border-gray-200 focus:border-orange-400 focus:outline-none transition-colors bg-white">
+                                <option value="">-- Choisir --</option>
+                                <option value="peu">🤏 Un peu</option>
+                                <option value="moyen">👌 Moyen</option>
+                                <option value="beaucoup">🙌 Beaucoup</option>
+                            </select>
+                        </div>
+
+                        <!-- Consistance -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-2">Consistance</label>
+                            <select id="poop-consistency" class="w-full px-3 py-2 rounded-xl border-2 border-gray-200 focus:border-orange-400 focus:outline-none transition-colors bg-white">
+                                <option value="">-- Choisir --</option>
+                                <option value="liquide">💧 Liquide</option>
+                                <option value="molle">🟡 Molle</option>
+                                <option value="normale">🟤 Normale</option>
+                                <option value="dure">🔴 Dure</option>
+                            </select>
+                        </div>
+
+                        <!-- Couleur -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-2">Couleur</label>
+                            <select id="poop-color" class="w-full px-3 py-2 rounded-xl border-2 border-gray-200 focus:border-orange-400 focus:outline-none transition-colors bg-white">
+                                <option value="">-- Choisir --</option>
+                                <option value="noir">⚫ Noir</option>
+                                <option value="marron">🟤 Marron</option>
+                                <option value="vert">🟢 Vert</option>
+                                <option value="jaune">🟡 Jaune</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -226,7 +280,7 @@
             <!-- Message de statut -->
             <div id="import-message" class="hidden mb-4 p-3 bg-blue-50 border border-blue-200 rounded-xl text-blue-800 text-sm"></div>
 
-            <!-- Export/Import - Maintenant optionnel -->
+            <!-- Export/Import -->
             <div class="mb-6">
                 <h4 class="font-semibold text-gray-700 mb-2 flex items-center gap-2">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -285,7 +339,6 @@
 
     <!-- Firebase SDK v9 -->
     <script type="module">
-        // Import des modules Firebase
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js';
         import { 
             getFirestore, 
@@ -299,7 +352,6 @@
             getDocs
         } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js';
 
-        // Configuration Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyCPQpB3cYk2sgbOVQ8KLbU1Qj2U67D2rZ4",
             authDomain: "suivi-loan.firebaseapp.com",
@@ -310,7 +362,6 @@
             measurementId: "G-RWZ0S704RJ"
         };
 
-        // Initialisation Firebase
         let app, db;
         
         try {
@@ -321,18 +372,18 @@
             console.error('Erreur initialisation Firebase:', error);
         }
 
-        // Variables globales
         let entries = [];
         let currentEntry = {
             type: '',
             amount: '',
             hasPee: false,
             hasPoop: false,
+            poopQuantity: '',
             poopConsistency: '',
+            poopColor: '',
             timestamp: new Date().toISOString()
         };
 
-        // Configuration bébé
         const BABY_BIRTH_DATE = new Date('2025-09-06T06:38:00');
         const BABY_INFO = {
             name: 'Loan',
@@ -341,7 +392,60 @@
             parents: ['Dylan', 'Chloé']
         };
 
-        // Éléments DOM
+        const FEEDING_GUIDE = {
+            1: { volume: '5–10ml', frequency: '8–12 fois/24h', comment: 'Estomac très petit, petites quantités très fréquentes' },
+            2: { volume: '10–20ml', frequency: '8–12 fois/24h', comment: 'Progression rapide, petites tétées fréquentes' },
+            3: { volume: '20–30ml', frequency: '8–10 fois/24h', comment: 'Bébé commence à boire plus régulièrement' },
+            4: { volume: '45–60ml', frequency: '6–8 fois/24h', comment: 'Adaptation au lait, souvent nécessaire de compléter un peu' },
+            5: { volume: '60–70ml', frequency: '6–8 fois/24h', comment: 'Attention aux signes de satiété, pas de suralimentation' },
+            6: { volume: '70–75ml', frequency: '6–8 fois/24h', comment: 'Rot + massages si besoin, surveiller selles et couches' },
+            7: { volume: '70–80ml', frequency: '6–8 fois/24h', comment: 'Même principe que jour 6, ajuster légèrement si bébé demande plus' }
+        };
+
+        const FEEDING_RANGES = [
+            { days: [8, 9, 10], volume: '80–90ml', frequency: '6–8 fois/24h', comment: 'Augmentation progressive des volumes' },
+            { days: [11, 12, 13, 14], volume: '90–100ml', frequency: '5–6 fois/24h', comment: 'Bébé commence à espacer les biberons, volumes plus stables' },
+            { days: [15, 16, 17, 18, 19, 20, 21], volume: '100–120ml', frequency: '5–6 fois/24h', comment: 'Transition vers volumes "standard" pour 1 mois' },
+            { days: [22, 23, 24, 25, 26, 27, 28], volume: '120–150ml', frequency: '5–6 fois/24h', comment: 'Bébé boit maintenant des biberons plus conséquents, espacés de 3–4h' }
+        ];
+
+        function getFeedingRecommendations(ageInDays) {
+            if (FEEDING_GUIDE[ageInDays]) {
+                return FEEDING_GUIDE[ageInDays];
+            }
+            
+            for (const range of FEEDING_RANGES) {
+                if (range.days.includes(ageInDays)) {
+                    return {
+                        volume: range.volume,
+                        frequency: range.frequency,
+                        comment: range.comment
+                    };
+                }
+            }
+            
+            if (ageInDays > 28) {
+                return {
+                    volume: '150–180ml',
+                    frequency: '5–6 fois/24h',
+                    comment: 'Volumes stabilisés, consulter le pédiatre pour ajustements'
+                };
+            }
+            
+            return null;
+        }
+
+        function getDefaultAmount(volumeRange) {
+            const ranges = volumeRange.match(/(\d+)(?:–(\d+))?/);
+            if (!ranges) return null;
+            
+            const min = parseInt(ranges[1]);
+            const max = ranges[2] ? parseInt(ranges[2]) : min;
+            
+            const average = Math.round((min + max) / 2);
+            return Math.round(average / 5) * 5;
+        }
+
         const elements = {
             babyAge: document.getElementById('baby-age'),
             settingsAge: document.getElementById('settings-age'),
@@ -363,10 +467,11 @@
             firstEntry: document.getElementById('first-entry'),
             lastEntry: document.getElementById('last-entry'),
             firebaseStatus: document.getElementById('firebase-status'),
-            connectionIndicator: document.getElementById('connection-indicator')
+            connectionIndicator: document.getElementById('connection-indicator'),
+            guideAge: document.getElementById('guide-age'),
+            feedingGuide: document.getElementById('feeding-guide')
         };
 
-        // Calcul de l'âge
         function calculateAge() {
             const now = new Date();
             const birthDate = new Date(BABY_BIRTH_DATE);
@@ -380,7 +485,6 @@
             return Math.max(0, diffDays);
         }
 
-        // Formatage des dates
         function formatTime(timestamp) {
             return new Date(timestamp).toLocaleTimeString('fr-FR', {
                 hour: '2-digit',
@@ -396,7 +500,6 @@
             });
         }
 
-        // Mise à jour du statut Firebase
         function updateFirebaseStatus(status, isConnected = false) {
             if (elements.firebaseStatus) {
                 elements.firebaseStatus.textContent = status;
@@ -410,10 +513,36 @@
             }
         }
 
-        // Initialisation des données Firebase
+        function updateFeedingGuide(ageInDays) {
+            if (elements.guideAge) {
+                elements.guideAge.textContent = ageInDays;
+            }
+            
+            if (elements.feedingGuide) {
+                const recommendations = getFeedingRecommendations(ageInDays);
+                
+                if (recommendations) {
+                    elements.feedingGuide.innerHTML = `
+                        <div class="grid grid-cols-2 gap-2 mb-2">
+                            <div>
+                                <strong>📏 Volume :</strong><br>
+                                <span class="text-blue-900 font-medium">${recommendations.volume}</span>
+                            </div>
+                            <div>
+                                <strong>⏰ Fréquence :</strong><br>
+                                <span class="text-blue-900 font-medium">${recommendations.frequency}</span>
+                            </div>
+                        </div>
+                        <div class="text-xs text-blue-600 italic">
+                            💡 ${recommendations.comment}
+                        </div>
+                    `;
+                }
+            }
+        }
+
         function initializeFirebase() {
             if (!db) {
-                console.error('Firebase non initialisé');
                 updateFirebaseStatus('❌ Firebase non disponible');
                 loadEntriesLocal();
                 return;
@@ -425,7 +554,6 @@
                 const q = query(collection(db, 'entries'), orderBy('timestamp', 'desc'));
                 
                 onSnapshot(q, (snapshot) => {
-                    console.log('Données reçues de Firebase:', snapshot.size, 'entrées');
                     entries = [];
                     
                     snapshot.forEach((doc) => {
@@ -439,41 +567,32 @@
                     updateDisplay();
                     updateFirebaseStatus('✅ Connecté et synchronisé', true);
                     
-                    // Sauvegarder en local comme backup
                     localStorage.setItem('babyTrackerEntries', JSON.stringify(entries));
                 }, (error) => {
-                    console.error('Erreur Firebase onSnapshot:', error);
                     updateFirebaseStatus('❌ Erreur de connexion');
                     loadEntriesLocal();
                 });
                 
             } catch (error) {
-                console.error('Erreur lors de l\'initialisation Firebase:', error);
                 updateFirebaseStatus('❌ Erreur Firebase');
                 loadEntriesLocal();
             }
         }
 
-        // Chargement local
         function loadEntriesLocal() {
             const saved = localStorage.getItem('babyTrackerEntries');
             if (saved) {
                 try {
                     entries = JSON.parse(saved);
                     updateDisplay();
-                    console.log('Données chargées depuis localStorage:', entries.length, 'entrées');
                 } catch (error) {
-                    console.error('Erreur parsing localStorage:', error);
                     entries = [];
                 }
             }
         }
 
-        // Sauvegarde dans Firebase
         async function saveEntryToFirebase(entry) {
             if (!db) {
-                console.error('Firebase non disponible');
-                showMessage('❌ Firebase non disponible, sauvegarde locale');
                 entries.unshift({...entry, id: Date.now().toString()});
                 localStorage.setItem('babyTrackerEntries', JSON.stringify(entries));
                 updateDisplay();
@@ -488,31 +607,23 @@
                     amount: entry.amount,
                     hasPee: entry.hasPee,
                     hasPoop: entry.hasPoop,
+                    poopQuantity: entry.poopQuantity,
                     poopConsistency: entry.poopConsistency,
+                    poopColor: entry.poopColor,
                     timestamp: entry.timestamp
                 });
                 
-                console.log('Entrée sauvegardée avec ID:', docRef.id);
                 updateFirebaseStatus('✅ Sauvegardé', true);
                 
             } catch (error) {
-                console.error('Erreur sauvegarde Firebase:', error);
-                updateFirebaseStatus('❌ Erreur sauvegarde');
-                showMessage('❌ Erreur Firebase, sauvegarde locale');
-                
-                // Fallback local
                 entries.unshift({...entry, id: Date.now().toString()});
                 localStorage.setItem('babyTrackerEntries', JSON.stringify(entries));
                 updateDisplay();
             }
         }
 
-        // Suppression Firebase
         async function deleteAllEntriesFirebase() {
-            if (!db) {
-                console.error('Firebase non disponible');
-                return;
-            }
+            if (!db) return;
 
             try {
                 const querySnapshot = await getDocs(collection(db, 'entries'));
@@ -523,20 +634,19 @@
                 });
                 
                 await Promise.all(deletePromises);
-                console.log('Toutes les entrées supprimées de Firebase');
                 
             } catch (error) {
                 console.error('Erreur suppression Firebase:', error);
             }
         }
 
-        // Mise à jour de l'affichage
         function updateDisplay() {
             const age = calculateAge();
             elements.babyAge.textContent = age;
             elements.settingsAge.textContent = age;
+            
+            updateFeedingGuide(age);
 
-            // Statistiques du jour
             const today = new Date().toDateString();
             const todayEntries = entries.filter(entry => {
                 return new Date(entry.timestamp).toDateString() === today;
@@ -551,7 +661,6 @@
             elements.totalPees.textContent = todayPees;
             elements.totalPoops.textContent = todayPoops;
 
-            // Statistiques générales
             elements.totalEntries.textContent = entries.length;
             elements.firstEntry.textContent = entries.length > 0 ? formatDate(entries[entries.length - 1].timestamp) : 'Aucune';
             elements.lastEntry.textContent = entries.length > 0 ? formatDate(entries[0].timestamp) : 'Aucune';
@@ -559,7 +668,34 @@
             updateHistory();
         }
 
-        // Mise à jour de l'historique
+        function getPoopInfo(quantity, consistency, color) {
+            const quantities = {
+                'peu': { label: 'Un peu', emoji: '🤏' },
+                'moyen': { label: 'Moyen', emoji: '👌' },
+                'beaucoup': { label: 'Beaucoup', emoji: '🙌' }
+            };
+
+            const consistencies = {
+                'liquide': { label: 'Liquide', emoji: '💧' },
+                'molle': { label: 'Molle', emoji: '🟡' },
+                'normale': { label: 'Normale', emoji: '🟤' },
+                'dure': { label: 'Dure', emoji: '🔴' }
+            };
+
+            const colors = {
+                'noir': { label: 'Noir', emoji: '⚫', bgColor: 'bg-gray-800', textColor: 'text-white' },
+                'marron': { label: 'Marron', emoji: '🟤', bgColor: 'bg-amber-700', textColor: 'text-white' },
+                'vert': { label: 'Vert', emoji: '🟢', bgColor: 'bg-green-600', textColor: 'text-white' },
+                'jaune': { label: 'Jaune', emoji: '🟡', bgColor: 'bg-yellow-400', textColor: 'text-gray-800' }
+            };
+
+            return {
+                quantity: quantities[quantity] || { label: '', emoji: '' },
+                consistency: consistencies[consistency] || { label: '', emoji: '' },
+                color: colors[color] || { label: '', emoji: '', bgColor: 'bg-orange-100', textColor: 'text-orange-800' }
+            };
+        }
+
         function updateHistory() {
             if (entries.length === 0) {
                 elements.noEntries.style.display = 'block';
@@ -575,13 +711,27 @@
                 const entryDiv = document.createElement('div');
                 entryDiv.className = 'bg-white/80 glass rounded-2xl p-4 shadow-sm border border-white/50 fade-in';
 
-                const consistencyInfo = getConsistencyInfo(entry.poopConsistency);
+                let poopDisplay = '';
+                if (entry.hasPoop) {
+                    const poopInfo = getPoopInfo(entry.poopQuantity, entry.poopConsistency, entry.poopColor);
+                    const parts = [];
+                    
+                    if (poopInfo.quantity.label) parts.push(`${poopInfo.quantity.emoji} ${poopInfo.quantity.label}`);
+                    if (poopInfo.consistency.label) parts.push(`${poopInfo.consistency.emoji} ${poopInfo.consistency.label}`);
+                    if (poopInfo.color.label) parts.push(`${poopInfo.color.emoji} ${poopInfo.color.label}`);
+                    
+                    const displayText = parts.length > 0 ? parts.join(' • ') : '💩 Caca';
+                    const bgColor = poopInfo.color.bgColor || 'bg-orange-100';
+                    const textColor = poopInfo.color.textColor || 'text-orange-800';
+                    
+                    poopDisplay = `<span class="${bgColor} ${textColor} px-3 py-1 rounded-full text-xs">${displayText}</span>`;
+                }
                 
                 entryDiv.innerHTML = `
                     <div class="flex items-center justify-between mb-2">
                         <div class="flex items-center gap-2">
                             ${entry.type === 'feeding' ? 
-                                '<svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>' :
+                                '<svg class="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 24 24"><path d="M9 3V1h6v2c1.1 0 2 .9 2 2v3h1c.55 0 1 .45 1 1s-.45 1-1 1h-1v9c0 1.1-.9 2-2 2H9c-1.1 0-2-.9-2-2v-9H6c-.55 0-1-.45-1-1s.45-1 1-1h1V5c0-1.1.9-2 2-2zm1 2v13h4V5h-4z"></path></svg>' :
                                 '<div class="text-lg">👶</div>'
                             }
                             <span class="font-semibold text-gray-800">
@@ -595,16 +745,14 @@
                             ${formatTime(entry.timestamp)}
                         </div>
                     </div>
-                    <div class="flex items-center gap-3 text-sm">
+                    <div class="flex items-center gap-2 text-sm flex-wrap">
                         ${entry.type === 'feeding' && entry.amount ? 
                             `<span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-medium">${entry.amount}ml</span>` : ''
                         }
                         ${entry.hasPee ? 
                             '<span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full">💧 Pipi</span>' : ''
                         }
-                        ${entry.hasPoop ? 
-                            `<span class="${consistencyInfo.color} px-3 py-1 rounded-full">${consistencyInfo.emoji} ${consistencyInfo.label}</span>` : ''
-                        }
+                        ${poopDisplay}
                     </div>
                 `;
                 
@@ -612,25 +760,69 @@
             });
         }
 
-        // Informations de consistance
-        function getConsistencyInfo(consistency) {
-            const options = {
-                'liquide': { label: 'Liquide', color: 'bg-yellow-100 text-yellow-800', emoji: '💧' },
-                'molle': { label: 'Molle', color: 'bg-orange-100 text-orange-800', emoji: '🟡' },
-                'normale': { label: 'Normale', color: 'bg-green-100 text-green-800', emoji: '🟤' },
-                'dure': { label: 'Dure', color: 'bg-red-100 text-red-800', emoji: '🔴' }
-            };
-            return options[consistency] || { label: 'Caca', color: 'bg-orange-100 text-orange-800', emoji: '💩' };
+        function updateBottleRecommendations() {
+            const age = calculateAge();
+            const recommendations = getFeedingRecommendations(age);
+            const recommendedAmountEl = document.getElementById('recommended-amount');
+            
+            if (recommendedAmountEl && recommendations) {
+                recommendedAmountEl.textContent = `(Recommandé : ${recommendations.volume})`;
+                
+                const amountInput = elements.amountInput;
+                const defaultValue = getDefaultAmount(recommendations.volume);
+                if (defaultValue && amountInput) {
+                    amountInput.value = defaultValue;
+                    amountInput.placeholder = `Recommandé: ${defaultValue}ml`;
+                    
+                    amountInput.dispatchEvent(new Event('input'));
+                }
+                
+                const feedbackEl = document.getElementById('amount-feedback');
+                
+                const checkAmount = () => {
+                    const value = parseInt(amountInput.value);
+                    if (!value) {
+                        feedbackEl.style.display = 'none';
+                        return;
+                    }
+                    
+                    const ranges = recommendations.volume.match(/(\d+)(?:–(\d+))?/);
+                    if (!ranges) return;
+                    
+                    const min = parseInt(ranges[1]);
+                    const max = ranges[2] ? parseInt(ranges[2]) : min;
+                    
+                    feedbackEl.style.display = 'block';
+                    
+                    if (value < min) {
+                        feedbackEl.className = 'text-xs mt-1 text-orange-600';
+                        feedbackEl.textContent = `⚠️ Un peu faible pour jour ${age} (minimum ~${min}ml)`;
+                    } else if (value > max * 1.5) {
+                        feedbackEl.className = 'text-xs mt-1 text-red-600';
+                        feedbackEl.textContent = `⚠️ Beaucoup pour jour ${age} (maximum conseillé ~${max}ml)`;
+                    } else if (value >= min && value <= max) {
+                        feedbackEl.className = 'text-xs mt-1 text-green-600';
+                        feedbackEl.textContent = `✅ Parfait pour jour ${age} !`;
+                    } else {
+                        feedbackEl.className = 'text-xs mt-1 text-blue-600';
+                        feedbackEl.textContent = `👍 Un peu plus que recommandé, mais OK`;
+                    }
+                };
+                
+                amountInput.removeEventListener('input', checkAmount);
+                amountInput.addEventListener('input', checkAmount);
+            }
         }
 
-        // Gestion des formulaires
         function showForm(type) {
             currentEntry = {
                 type: type,
                 amount: '',
                 hasPee: false,
                 hasPoop: false,
+                poopQuantity: '',
                 poopConsistency: '',
+                poopColor: '',
                 timestamp: new Date().toISOString()
             };
 
@@ -642,6 +834,8 @@
             if (type === 'feeding') {
                 elements.formTitle.textContent = '🍼 Nouveau biberon';
                 elements.amountSection.style.display = 'block';
+                
+                updateBottleRecommendations();
                 elements.amountInput.focus();
             } else {
                 elements.formTitle.textContent = '👶 Nouvelle couche';
@@ -657,6 +851,16 @@
             elements.actionButtons.style.display = 'flex';
             elements.historySection.style.display = 'block';
             elements.amountInput.value = '';
+            elements.amountInput.placeholder = 'Ex: 120';
+            
+            document.getElementById('poop-quantity').value = '';
+            document.getElementById('poop-consistency').value = '';
+            document.getElementById('poop-color').value = '';
+            
+            const feedbackEl = document.getElementById('amount-feedback');
+            if (feedbackEl) {
+                feedbackEl.style.display = 'none';
+            }
         }
 
         function showSettings() {
@@ -674,25 +878,19 @@
         }
 
         function resetFormButtons() {
-            // Reset boutons pipi
             document.getElementById('pee-yes').className = 'flex-1 py-3 rounded-xl font-medium transition-all bg-gray-100 text-gray-600 hover:bg-gray-200';
             document.getElementById('pee-no').className = 'flex-1 py-3 rounded-xl font-medium transition-all bg-gray-500 text-white shadow-lg';
 
-            // Reset boutons caca
             document.getElementById('poop-yes').className = 'flex-1 py-3 rounded-xl font-medium transition-all bg-gray-100 text-gray-600 hover:bg-gray-200';
             document.getElementById('poop-no').className = 'flex-1 py-3 rounded-xl font-medium transition-all bg-gray-500 text-white shadow-lg';
 
-            // Reset boutons consistance
-            document.querySelectorAll('.consistency-btn').forEach(btn => {
-                const consistency = btn.dataset.consistency;
-                const info = getConsistencyInfo(consistency);
-                btn.className = `consistency-btn py-2 px-3 rounded-xl text-sm font-medium transition-all ${info.color} hover:ring-1 hover:ring-orange-300`;
-            });
+            document.getElementById('poop-quantity').value = '';
+            document.getElementById('poop-consistency').value = '';
+            document.getElementById('poop-color').value = '';
 
             elements.consistencySection.style.display = 'none';
         }
 
-        // Ajout d'une entrée
         function addEntry() {
             if (currentEntry.type === 'feeding' && !elements.amountInput.value) return;
 
@@ -710,7 +908,6 @@
             showMessage('✅ Entrée enregistrée avec succès !');
         }
 
-        // Export des données
         function exportData() {
             const dataToExport = {
                 babyInfo: BABY_INFO,
@@ -734,7 +931,6 @@
             showMessage('✅ Données de Loan exportées avec succès !');
         }
 
-        // Import des données
         function importData(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -748,7 +944,6 @@
                         const existingIds = new Set(entries.map(entry => entry.id));
                         const newEntries = importedData.entries.filter(entry => !existingIds.has(entry.id));
 
-                        // Ajouter à Firebase si disponible
                         if (db) {
                             newEntries.forEach(entry => {
                                 saveEntryToFirebase(entry);
@@ -774,22 +969,16 @@
             event.target.value = '';
         }
 
-        // Réinitialisation des données
         async function resetData() {
             if (confirm('⚠️ Êtes-vous sûr de vouloir effacer toutes les données ? Cette action est irréversible.')) {
-                // Supprimer de Firebase
                 await deleteAllEntriesFirebase();
-                
-                // Vider localStorage
                 localStorage.removeItem('babyTrackerEntries');
-                
                 entries = [];
                 updateDisplay();
                 showMessage('🗑️ Toutes les données ont été supprimées');
             }
         }
 
-        // Affichage des messages
         function showMessage(message) {
             if (elements.importMessage) {
                 elements.importMessage.textContent = message;
@@ -800,27 +989,24 @@
             }
         }
 
-        // Event listeners
         document.addEventListener('DOMContentLoaded', function() {
-            // Charger données locales immédiatement
             loadEntriesLocal();
             updateDisplay();
             
-            // Initialiser Firebase
+            const age = calculateAge();
+            updateFeedingGuide(age);
+            
             setTimeout(() => {
                 initializeFirebase();
             }, 1000);
 
-            // Boutons principaux
             document.getElementById('feeding-btn').addEventListener('click', () => showForm('feeding'));
             document.getElementById('diaper-btn').addEventListener('click', () => showForm('diaper'));
             document.getElementById('settings-btn').addEventListener('click', showSettings);
 
-            // Formulaire
             document.getElementById('close-form').addEventListener('click', hideForm);
             document.getElementById('save-btn').addEventListener('click', addEntry);
 
-            // Boutons pipi
             document.getElementById('pee-yes').addEventListener('click', function() {
                 currentEntry.hasPee = true;
                 this.className = 'flex-1 py-3 rounded-xl font-medium transition-all bg-blue-500 text-white shadow-lg';
@@ -833,7 +1019,6 @@
                 document.getElementById('pee-yes').className = 'flex-1 py-3 rounded-xl font-medium transition-all bg-gray-100 text-gray-600 hover:bg-gray-200';
             });
 
-            // Boutons caca
             document.getElementById('poop-yes').addEventListener('click', function() {
                 currentEntry.hasPoop = true;
                 this.className = 'flex-1 py-3 rounded-xl font-medium transition-all bg-orange-500 text-white shadow-lg';
@@ -843,45 +1028,35 @@
 
             document.getElementById('poop-no').addEventListener('click', function() {
                 currentEntry.hasPoop = false;
+                currentEntry.poopQuantity = '';
                 currentEntry.poopConsistency = '';
+                currentEntry.poopColor = '';
                 this.className = 'flex-1 py-3 rounded-xl font-medium transition-all bg-gray-500 text-white shadow-lg';
                 document.getElementById('poop-yes').className = 'flex-1 py-3 rounded-xl font-medium transition-all bg-gray-100 text-gray-600 hover:bg-gray-200';
                 elements.consistencySection.style.display = 'none';
                 
-                // Reset boutons consistance
-                document.querySelectorAll('.consistency-btn').forEach(btn => {
-                    const consistency = btn.dataset.consistency;
-                    const info = getConsistencyInfo(consistency);
-                    btn.className = `consistency-btn py-2 px-3 rounded-xl text-sm font-medium transition-all ${info.color} hover:ring-1 hover:ring-orange-300`;
-                });
+                document.getElementById('poop-quantity').value = '';
+                document.getElementById('poop-consistency').value = '';
+                document.getElementById('poop-color').value = '';
             });
 
-            // Boutons consistance
-            document.querySelectorAll('.consistency-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const consistency = this.dataset.consistency;
-                    currentEntry.poopConsistency = consistency;
-                    
-                    // Reset tous les boutons
-                    document.querySelectorAll('.consistency-btn').forEach(b => {
-                        const c = b.dataset.consistency;
-                        const info = getConsistencyInfo(c);
-                        b.className = `consistency-btn py-2 px-3 rounded-xl text-sm font-medium transition-all ${info.color} hover:ring-1 hover:ring-orange-300`;
-                    });
-                    
-                    // Activer le bouton sélectionné
-                    const info = getConsistencyInfo(consistency);
-                    this.className = `consistency-btn py-2 px-3 rounded-xl text-sm font-medium transition-all ring-2 ring-orange-400 ${info.color}`;
-                });
+            document.getElementById('poop-quantity').addEventListener('change', function() {
+                currentEntry.poopQuantity = this.value;
             });
 
-            // Paramètres
+            document.getElementById('poop-consistency').addEventListener('change', function() {
+                currentEntry.poopConsistency = this.value;
+            });
+
+            document.getElementById('poop-color').addEventListener('change', function() {
+                currentEntry.poopColor = this.value;
+            });
+
             document.getElementById('close-settings').addEventListener('click', hideSettings);
             document.getElementById('export-btn').addEventListener('click', exportData);
             document.getElementById('import-input').addEventListener('change', importData);
             document.getElementById('reset-btn').addEventListener('click', resetData);
 
-            // Validation du formulaire en temps réel
             elements.amountInput.addEventListener('input', function() {
                 const saveBtn = document.getElementById('save-btn');
                 if (currentEntry.type === 'feeding' && !this.value) {
@@ -894,3 +1069,4 @@
     </script>
 </body>
 </html>
+     
