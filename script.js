@@ -9,9 +9,9 @@ import {
     deleteDoc,
     doc,
     getDocs,
-    updateDoc
+    updateDoc,
+    where  // <- Ajouter cette ligne
 } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js';
-
 // === CONFIGURATION ===
 const firebaseConfig = {
     apiKey: "AIzaSyCPQpB3cYk2sgbOVQ8KLbU1Qj2U67D2rZ4",
@@ -314,18 +314,19 @@ function updateFeedingGuide(ageInDays) {
 }
 
 // === GESTION FIREBASE ===
+// === GESTION FIREBASE ===
 function initializeFirebase() {
     if (!db) {
         loadEntriesLocal();
+        loadMedicalData();
         return;
     }
 
     try {
-        const q = query(collection(db, 'entries'), orderBy('timestamp', 'desc'));
-
-        onSnapshot(q, (snapshot) => {
+        // Sync des entrées (biberons/couches)
+        const entriesQuery = query(collection(db, 'entries'), orderBy('timestamp', 'desc'));
+        onSnapshot(entriesQuery, (snapshot) => {
             entries = [];
-
             snapshot.forEach((doc) => {
                 const data = doc.data();
                 entries.push({
@@ -333,15 +334,69 @@ function initializeFirebase() {
                     ...data
                 });
             });
-
             updateDisplay();
             localStorage.setItem('babyTrackerEntries', JSON.stringify(entries));
         }, (error) => {
+            console.error('Erreur sync entries:', error);
             loadEntriesLocal();
         });
 
+        // Sync des médicaments
+        const medicationsQuery = query(collection(db, 'medications'), orderBy('timestamp', 'desc'));
+        onSnapshot(medicationsQuery, (snapshot) => {
+            medications = [];
+            snapshot.forEach((doc) => {
+                const data = doc.data();
+                medications.push({
+                    id: doc.id,
+                    ...data
+                });
+            });
+            updateMedicationDisplay();
+            localStorage.setItem('babyMedications', JSON.stringify(medications));
+        }, (error) => {
+            console.error('Erreur sync médicaments:', error);
+        });
+
+        // Sync des rendez-vous
+        const appointmentsQuery = query(collection(db, 'appointments'), orderBy('timestamp', 'desc'));
+        onSnapshot(appointmentsQuery, (snapshot) => {
+            appointments = [];
+            snapshot.forEach((doc) => {
+                const data = doc.data();
+                appointments.push({
+                    id: doc.id,
+                    ...data
+                });
+            });
+            updateAppointmentDisplay();
+            localStorage.setItem('babyAppointments', JSON.stringify(appointments));
+        }, (error) => {
+            console.error('Erreur sync RDV:', error);
+        });
+
+        // Sync des stocks
+        const stocksQuery = query(collection(db, 'stocks'));
+        onSnapshot(stocksQuery, (snapshot) => {
+            snapshot.forEach((doc) => {
+                const data = doc.data();
+                if (data.type === 'milk-powder' && data.date) {
+                    document.getElementById('milk-powder-date').textContent = data.date;
+                    localStorage.setItem('milkPowderDate', data.date);
+                }
+                if (data.type === 'water-bottle' && data.datetime) {
+                    document.getElementById('water-bottle-datetime').textContent = data.datetime;
+                    localStorage.setItem('waterBottleDateTime', data.datetime);
+                }
+            });
+        }, (error) => {
+            console.error('Erreur sync stocks:', error);
+        });
+
     } catch (error) {
+        console.error('Erreur Firebase:', error);
         loadEntriesLocal();
+        loadMedicalData();
     }
 }
 
@@ -616,6 +671,12 @@ function updateDailyChart() {
 
 // === GESTION DES ONGLETS ===
 function switchTab(tabId) {
+    // Masquer les nouvelles sections
+    document.querySelectorAll('[id$="-section"]:not(#history-section)').forEach(section => {
+        section.style.display = 'none';
+    });
+
+    // Réinitialiser tous les onglets
     document.querySelectorAll('.tab-button').forEach(btn => {
         btn.classList.remove('active');
         btn.classList.add('text-gray-600');
@@ -624,9 +685,14 @@ function switchTab(tabId) {
     document.getElementById(tabId).classList.add('active');
     document.getElementById(tabId).classList.remove('text-gray-600');
 
+    // Afficher les bonnes sections
     document.getElementById('daily-stats').style.display = tabId === 'tab-daily' ? 'grid' : 'none';
     document.getElementById('weekly-stats').style.display = tabId === 'tab-weekly' ? 'grid' : 'none';
     document.getElementById('monthly-stats').style.display = tabId === 'tab-monthly' ? 'grid' : 'none';
+    
+    // Toujours afficher l'historique et les boutons pour les onglets principaux
+    document.getElementById('history-section').style.display = 'block';
+    elements.actionButtons.style.display = 'flex';
 
     const period = tabId.replace('tab-', '');
     const filteredEntries = getFilteredEntries(period);
@@ -634,15 +700,27 @@ function switchTab(tabId) {
 }
 
 function switchToSection(sectionId) {
+    // Masquer toutes les sections SAUF l'historique
     document.querySelectorAll('[id$="-section"], [id$="-stats"]').forEach(section => {
-        section.style.display = 'none';
+        if (section.id !== 'history-section') {
+            section.style.display = 'none';
+        }
     });
+    
+    // Réafficher l'historique pour les onglets principaux
+    if (sectionId.includes('daily') || sectionId.includes('weekly') || sectionId.includes('monthly')) {
+        document.getElementById('history-section').style.display = 'block';
+    } else {
+        document.getElementById('history-section').style.display = 'none';
+    }
 
+    // Réinitialiser tous les onglets
     document.querySelectorAll('.tab-button').forEach(btn => {
         btn.classList.remove('active');
         btn.classList.add('text-gray-600');
     });
 
+    // Afficher la section et activer l'onglet correspondant
     const section = document.getElementById(sectionId);
     if (section) {
         section.style.display = 'block';
@@ -1151,13 +1229,6 @@ function giveMedication(medicationId) {
     }
 }
 
-function deleteMedication(medicationId) {
-    if (confirm('Supprimer ce médicament ?')) {
-        medications = medications.filter(m => m.id !== medicationId);
-        localStorage.setItem('babyMedications', JSON.stringify(medications));
-        updateMedicationDisplay();
-    }
-}
 
 async function scheduleNextMedicationNotification(medication) {
     if (!medication.interval) return;
@@ -1292,11 +1363,39 @@ function updateAppointmentDisplay() {
     });
 }
 
+function deleteMedication(medicationId) {
+    if (confirm('Supprimer ce médicament ?')) {
+        if (db) {
+            // Supprimer directement de Firebase, la sync se charge du reste
+            deleteDoc(doc(db, 'medications', medicationId)).catch(error => {
+                console.error('Erreur suppression:', error);
+                // Fallback local si erreur
+                medications = medications.filter(m => m.id !== medicationId);
+                localStorage.setItem('babyMedications', JSON.stringify(medications));
+                updateMedicationDisplay();
+            });
+        } else {
+            medications = medications.filter(m => m.id !== medicationId);
+            localStorage.setItem('babyMedications', JSON.stringify(medications));
+            updateMedicationDisplay();
+        }
+    }
+}
+
 function deleteAppointment(appointmentId) {
     if (confirm('Supprimer ce rendez-vous ?')) {
-        appointments = appointments.filter(a => a.id !== appointmentId);
-        localStorage.setItem('babyAppointments', JSON.stringify(appointments));
-        updateAppointmentDisplay();
+        if (db) {
+            deleteDoc(doc(db, 'appointments', appointmentId)).catch(error => {
+                console.error('Erreur suppression:', error);
+                appointments = appointments.filter(a => a.id !== appointmentId);
+                localStorage.setItem('babyAppointments', JSON.stringify(appointments));
+                updateAppointmentDisplay();
+            });
+        } else {
+            appointments = appointments.filter(a => a.id !== appointmentId);
+            localStorage.setItem('babyAppointments', JSON.stringify(appointments));
+            updateAppointmentDisplay();
+        }
     }
 }
 
