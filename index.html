@@ -140,7 +140,7 @@
         <!-- Statistiques du jour -->
         <div id="daily-stats" class="grid grid-cols-3 gap-3 mb-6">
             <div class="bg-white/80 glass rounded-2xl p-4 text-center shadow-sm border border-white/50">
-                <i class="fas fa-baby-bottle text-blue-500 text-xl mb-1"></i>
+                <i class="fas fa-bottle-water text-blue-500 text-xl mb-1"></i>
                 <div class="text-lg font-bold text-gray-800" id="total-milk">0ml</div>
                 <div class="text-xs text-gray-500">Lait aujourd'hui</div>
             </div>
@@ -159,13 +159,13 @@
         <!-- Statistiques hebdomadaires -->
         <div id="weekly-stats" class="hidden grid grid-cols-2 gap-3 mb-6">
             <div class="bg-white/80 glass rounded-2xl p-4 text-center shadow-sm border border-white/50">
-                <i class="fas fa-baby-bottle text-blue-500 text-xl mb-1"></i>
+                <i class="fas fa-bottle-water text-blue-500 text-xl mb-1"></i>
                 <div class="text-lg font-bold text-gray-800" id="weekly-milk">0ml</div>
                 <div class="text-xs text-gray-500">Lait cette semaine</div>
                 <div class="text-xs text-gray-400 mt-1" id="weekly-milk-avg">Moy: 0ml/jour</div>
             </div>
             <div class="bg-white/80 glass rounded-2xl p-4 text-center shadow-sm border border-white/50">
-                <i class="fas fa-baby-bottle text-green-500 text-xl mb-1"></i>
+                <i class="fas fa-bottle-water text-green-500 text-xl mb-1"></i>
                 <div class="text-lg font-bold text-gray-800" id="weekly-feedings">0</div>
                 <div class="text-xs text-gray-500">Biberons</div>
                 <div class="text-xs text-gray-400 mt-1" id="weekly-feedings-avg">Moy: 0/jour</div>
@@ -187,13 +187,13 @@
         <!-- Statistiques mensuelles -->
         <div id="monthly-stats" class="hidden grid grid-cols-2 gap-3 mb-6">
             <div class="bg-white/80 glass rounded-2xl p-4 text-center shadow-sm border border-white/50">
-                <i class="fas fa-baby-bottle text-blue-500 text-xl mb-1"></i>
+                <i class="fas fa-bottle-water text-blue-500 text-xl mb-1"></i>
                 <div class="text-lg font-bold text-gray-800" id="monthly-milk">0ml</div>
                 <div class="text-xs text-gray-500">Lait ce mois</div>
                 <div class="text-xs text-gray-400 mt-1" id="monthly-milk-avg">Moy: 0ml/jour</div>
             </div>
             <div class="bg-white/80 glass rounded-2xl p-4 text-center shadow-sm border border-white/50">
-                <i class="fas fa-baby-bottle text-green-500 text-xl mb-1"></i>
+                <i class="fas fa-bottle-water text-green-500 text-xl mb-1"></i>
                 <div class="text-lg font-bold text-gray-800" id="monthly-feedings">0</div>
                 <div class="text-xs text-gray-500">Biberons</div>
                 <div class="text-xs text-gray-400 mt-1" id="monthly-feedings-avg">Moy: 0/jour</div>
@@ -227,7 +227,7 @@
         <div id="action-buttons" class="flex gap-3 mb-6">
             <button id="feeding-btn"
                 class="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-2xl p-4 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transition-all duration-200 btn-scale">
-                <i class="fas fa-baby-bottle text-lg"></i>
+                <i class="fas fa-bottle-water text-lg"></i>
                 <span class="font-semibold">Biberon</span>
             </button>
             <button id="diaper-btn"
@@ -1035,7 +1035,7 @@
                     <div class="flex items-center justify-between mb-2">
                         <div class="flex items-center gap-2">
                             ${entry.type === 'feeding' ?
-                        '<i class="fas fa-baby-bottle text-blue-500 text-lg"></i>' :
+                        '<i class="fas fa-bottle-water text-blue-500 text-lg"></i>' :
                         '<div class="text-lg">👶</div>'
                     }
                             <span class="font-semibold text-gray-800">
