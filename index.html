@@ -7,6 +7,8 @@
     <link rel="icon"
         href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👶</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
@@ -60,6 +62,16 @@
                 transform: translateY(0);
             }
         }
+
+        .tab-button {
+            transition: all 0.3s ease;
+        }
+
+        .tab-button.active {
+            background: linear-gradient(to right, #3B82F6, #1D4ED8);
+            color: white;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
     </style>
 </head>
 
@@ -82,13 +94,7 @@
                 </div>
                 <button id="settings-btn"
                     class="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-gray-700 hover:bg-white/50 rounded-full transition-all">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z">
-                        </path>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                    </svg>
+                    <i class="fas fa-cog text-lg"></i>
                 </button>
             </div>
             <p class="text-xs text-gray-500 mt-2">Né le 06/09/2025 à 06h38</p>
@@ -116,14 +122,25 @@
             </div>
         </div>
 
+        <!-- Onglets pour les statistiques -->
+        <div class="mb-4">
+            <div class="flex bg-white/60 rounded-xl p-1 gap-1">
+                <button id="tab-daily" class="tab-button active flex-1 py-2 px-3 rounded-lg text-sm font-medium">
+                    Aujourd'hui
+                </button>
+                <button id="tab-weekly" class="tab-button flex-1 py-2 px-3 rounded-lg text-sm font-medium text-gray-600">
+                    Cette semaine
+                </button>
+                <button id="tab-monthly" class="tab-button flex-1 py-2 px-3 rounded-lg text-sm font-medium text-gray-600">
+                    Ce mois
+                </button>
+            </div>
+        </div>
+
         <!-- Statistiques du jour -->
-        <div class="grid grid-cols-3 gap-3 mb-6">
+        <div id="daily-stats" class="grid grid-cols-3 gap-3 mb-6">
             <div class="bg-white/80 glass rounded-2xl p-4 text-center shadow-sm border border-white/50">
-                <svg class="w-6 h-6 text-blue-500 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
-                    </path>
-                </svg>
+                <i class="fas fa-baby-bottle text-blue-500 text-xl mb-1"></i>
                 <div class="text-lg font-bold text-gray-800" id="total-milk">0ml</div>
                 <div class="text-xs text-gray-500">Lait aujourd'hui</div>
             </div>
@@ -139,23 +156,83 @@
             </div>
         </div>
 
+        <!-- Statistiques hebdomadaires -->
+        <div id="weekly-stats" class="hidden grid grid-cols-2 gap-3 mb-6">
+            <div class="bg-white/80 glass rounded-2xl p-4 text-center shadow-sm border border-white/50">
+                <i class="fas fa-baby-bottle text-blue-500 text-xl mb-1"></i>
+                <div class="text-lg font-bold text-gray-800" id="weekly-milk">0ml</div>
+                <div class="text-xs text-gray-500">Lait cette semaine</div>
+                <div class="text-xs text-gray-400 mt-1" id="weekly-milk-avg">Moy: 0ml/jour</div>
+            </div>
+            <div class="bg-white/80 glass rounded-2xl p-4 text-center shadow-sm border border-white/50">
+                <i class="fas fa-baby-bottle text-green-500 text-xl mb-1"></i>
+                <div class="text-lg font-bold text-gray-800" id="weekly-feedings">0</div>
+                <div class="text-xs text-gray-500">Biberons</div>
+                <div class="text-xs text-gray-400 mt-1" id="weekly-feedings-avg">Moy: 0/jour</div>
+            </div>
+            <div class="bg-white/80 glass rounded-2xl p-4 text-center shadow-sm border border-white/50">
+                <div class="text-xl mb-1">💧</div>
+                <div class="text-lg font-bold text-gray-800" id="weekly-pees">0</div>
+                <div class="text-xs text-gray-500">Pipis</div>
+                <div class="text-xs text-gray-400 mt-1" id="weekly-pees-avg">Moy: 0/jour</div>
+            </div>
+            <div class="bg-white/80 glass rounded-2xl p-4 text-center shadow-sm border border-white/50">
+                <div class="text-xl mb-1">💩</div>
+                <div class="text-lg font-bold text-gray-800" id="weekly-poops">0</div>
+                <div class="text-xs text-gray-500">Cacas</div>
+                <div class="text-xs text-gray-400 mt-1" id="weekly-poops-avg">Moy: 0/jour</div>
+            </div>
+        </div>
+
+        <!-- Statistiques mensuelles -->
+        <div id="monthly-stats" class="hidden grid grid-cols-2 gap-3 mb-6">
+            <div class="bg-white/80 glass rounded-2xl p-4 text-center shadow-sm border border-white/50">
+                <i class="fas fa-baby-bottle text-blue-500 text-xl mb-1"></i>
+                <div class="text-lg font-bold text-gray-800" id="monthly-milk">0ml</div>
+                <div class="text-xs text-gray-500">Lait ce mois</div>
+                <div class="text-xs text-gray-400 mt-1" id="monthly-milk-avg">Moy: 0ml/jour</div>
+            </div>
+            <div class="bg-white/80 glass rounded-2xl p-4 text-center shadow-sm border border-white/50">
+                <i class="fas fa-baby-bottle text-green-500 text-xl mb-1"></i>
+                <div class="text-lg font-bold text-gray-800" id="monthly-feedings">0</div>
+                <div class="text-xs text-gray-500">Biberons</div>
+                <div class="text-xs text-gray-400 mt-1" id="monthly-feedings-avg">Moy: 0/jour</div>
+            </div>
+            <div class="bg-white/80 glass rounded-2xl p-4 text-center shadow-sm border border-white/50">
+                <div class="text-xl mb-1">💧</div>
+                <div class="text-lg font-bold text-gray-800" id="monthly-pees">0</div>
+                <div class="text-xs text-gray-500">Pipis</div>
+                <div class="text-xs text-gray-400 mt-1" id="monthly-pees-avg">Moy: 0/jour</div>
+            </div>
+            <div class="bg-white/80 glass rounded-2xl p-4 text-center shadow-sm border border-white/50">
+                <div class="text-xl mb-1">💩</div>
+                <div class="text-lg font-bold text-gray-800" id="monthly-poops">0</div>
+                <div class="text-xs text-gray-500">Cacas</div>
+                <div class="text-xs text-gray-400 mt-1" id="monthly-poops-avg">Moy: 0/jour</div>
+            </div>
+        </div>
+
+        <!-- Courbe journalière -->
+        <div class="mb-6 bg-white/80 glass rounded-2xl p-4 shadow-sm border border-white/50">
+            <h4 class="text-sm font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                <i class="fas fa-chart-line text-blue-500"></i>
+                Courbe journalière (7h - 6h30)
+            </h4>
+            <div style="height: 200px;">
+                <canvas id="dailyChart"></canvas>
+            </div>
+        </div>
+
         <!-- Boutons d'action -->
         <div id="action-buttons" class="flex gap-3 mb-6">
             <button id="feeding-btn"
                 class="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-2xl p-4 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transition-all duration-200 btn-scale">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
-                    </path>
-                </svg>
+                <i class="fas fa-baby-bottle text-lg"></i>
                 <span class="font-semibold">Biberon</span>
             </button>
             <button id="diaper-btn"
                 class="flex-1 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-2xl p-4 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transition-all duration-200 btn-scale">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                </svg>
+                <i class="fas fa-plus text-lg"></i>
                 <span class="font-semibold">Couche</span>
             </button>
         </div>
@@ -165,7 +242,9 @@
             class="hidden bg-white/90 glass rounded-2xl p-6 mb-6 shadow-xl border border-white/50 slide-up">
             <div class="flex items-center justify-between mb-4">
                 <h3 id="form-title" class="text-lg font-bold text-gray-800">🍼 Nouveau biberon</h3>
-                <button id="close-form" class="text-gray-400 hover:text-gray-600 text-xl">×</button>
+                <button id="close-form" class="text-gray-400 hover:text-gray-600 text-xl">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
 
             <!-- Quantité biberon -->
@@ -249,9 +328,7 @@
 
             <button id="save-btn"
                 class="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-200 btn-scale disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                </svg>
+                <i class="fas fa-check text-lg"></i>
                 Enregistrer
             </button>
         </div>
@@ -261,40 +338,16 @@
             class="hidden bg-white/95 glass rounded-2xl p-6 mb-6 shadow-xl border border-white/50 slide-up">
             <div class="flex items-center justify-between mb-6">
                 <h3 class="text-xl font-bold text-gray-800 flex items-center gap-2">
-                    <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z">
-                        </path>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                    </svg>
+                    <i class="fas fa-cog text-gray-600"></i>
                     Paramètres famille
                 </h3>
                 <button id="close-settings"
                     class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-all">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
-                        </path>
-                    </svg>
+                    <i class="fas fa-times text-lg"></i>
                 </button>
             </div>
 
-            <!-- Synchronisation Firebase -->
-            <div class="mb-6 p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-200">
-                <h4 class="font-semibold text-green-800 mb-2 flex items-center gap-2">
-                    <div id="connection-indicator" class="w-3 h-3 bg-yellow-500 rounded-full animate-pulse"></div>
-                    Synchronisation Firebase
-                </h4>
-                <div class="text-sm text-green-700 space-y-1">
-                    <p><strong>✅ Temps réel :</strong> Dylan et Chloé voient les mises à jour instantanément</p>
-                    <p><strong>☁️ Cloud :</strong> Données sauvegardées automatiquement</p>
-                    <p><strong>📱 Multi-appareils :</strong> Accessible partout</p>
-                </div>
-                <div class="mt-2 text-xs text-green-600">
-                    Statut : <span id="firebase-status" class="font-medium">🔄 Initialisation...</span>
-                </div>
-            </div>
-
+            
             <!-- Informations de Loan -->
             <div class="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
                 <h4 class="font-semibold text-blue-800 mb-3 flex items-center gap-2">
@@ -325,36 +378,12 @@
                 </div>
             </div>
 
-            <!-- Message de statut -->
-            <div id="import-message"
-                class="hidden mb-4 p-3 bg-blue-50 border border-blue-200 rounded-xl text-blue-800 text-sm"></div>
-
-            <!-- Export/Import -->
-            <div class="mb-6">
-                <h4 class="font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2z">
-                        </path>
-                    </svg>
-                    Export/Import (sauvegarde locale)
-                </h4>
-                <p class="text-xs text-gray-500 mb-3">Optionnel : pour sauvegarde de sécurité uniquement</p>
-                <div class="flex gap-2">
-                    <button id="export-btn" class="flex-1 bg-gray-400 text-white py-2 px-3 rounded-lg text-sm">
-                        Export
-                    </button>
-                    <label
-                        class="flex-1 bg-gray-400 text-white py-2 px-3 rounded-lg text-sm text-center cursor-pointer">
-                        Import
-                        <input type="file" id="import-input" accept=".json" class="hidden">
-                    </label>
-                </div>
-            </div>
-
             <!-- Statistiques -->
             <div class="mb-6 p-4 bg-gray-50 rounded-xl">
-                <h4 class="font-semibold text-gray-700 mb-2">📊 Statistiques</h4>
+                <h4 class="font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                    <i class="fas fa-chart-bar"></i>
+                    Statistiques
+                </h4>
                 <div class="text-sm text-gray-600 space-y-1">
                     <p>Total d'entrées : <strong id="total-entries">0</strong></p>
                     <p>Première entrée : <strong id="first-entry">Aucune</strong></p>
@@ -365,8 +394,9 @@
             <!-- Réinitialisation -->
             <div>
                 <button id="reset-btn"
-                    class="w-full bg-gradient-to-r from-red-500 to-red-600 text-white py-3 rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-200 btn-scale">
-                    🗑️ Effacer toutes les données
+                    class="w-full bg-gradient-to-r from-red-500 to-red-600 text-white py-3 rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-200 btn-scale flex items-center justify-center gap-2">
+                    <i class="fas fa-trash"></i>
+                    Effacer toutes les données
                 </button>
             </div>
         </div>
@@ -374,11 +404,7 @@
         <!-- Historique -->
         <div id="history-section" class="space-y-3">
             <h3 class="text-lg font-bold text-gray-800 flex items-center gap-2">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
-                    </path>
-                </svg>
+                <i class="fas fa-history"></i>
                 Historique
             </h3>
 
@@ -417,7 +443,7 @@
             measurementId: "G-RWZ0S704RJ"
         };
 
-        let app, db;
+        let app, db, dailyChart;
 
         try {
             app = initializeApp(firebaseConfig);
@@ -517,7 +543,6 @@
             amountSection: document.getElementById('amount-section'),
             amountInput: document.getElementById('amount-input'),
             consistencySection: document.getElementById('consistency-section'),
-            importMessage: document.getElementById('import-message'),
             totalEntries: document.getElementById('total-entries'),
             firstEntry: document.getElementById('first-entry'),
             lastEntry: document.getElementById('last-entry'),
@@ -553,6 +578,47 @@
                 day: 'numeric',
                 month: 'long'
             });
+        }
+
+        function getDayStart(date) {
+            // Le jour commence à 7h du matin
+            const dayStart = new Date(date);
+            dayStart.setHours(7, 0, 0, 0);
+            
+            // Si on est avant 7h, on prend le jour d'avant
+            if (date.getHours() < 7) {
+                dayStart.setDate(dayStart.getDate() - 1);
+            }
+            
+            return dayStart;
+        }
+
+        function getDayEnd(date) {
+            // Le jour se termine à 6h30 du matin suivant
+            const dayEnd = new Date(date);
+            dayEnd.setHours(6, 30, 0, 0);
+            dayEnd.setDate(dayEnd.getDate() + 1);
+            
+            // Si on est après 7h, on prend le jour suivant
+            if (date.getHours() >= 7) {
+                dayEnd.setDate(dayEnd.getDate() + 1);
+            }
+            
+            return dayEnd;
+        }
+
+        function getWeekStart(date) {
+            const weekStart = getDayStart(date);
+            const dayOfWeek = weekStart.getDay();
+            const diffToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+            weekStart.setDate(weekStart.getDate() - diffToMonday);
+            return weekStart;
+        }
+
+        function getMonthStart(date) {
+            const monthStart = getDayStart(date);
+            monthStart.setDate(1);
+            return monthStart;
         }
 
         function updateFirebaseStatus(status, isConnected = false) {
@@ -695,6 +761,176 @@
             }
         }
 
+        function getFilteredEntries(period) {
+            const now = new Date();
+            let startDate, endDate;
+
+            switch (period) {
+                case 'daily':
+                    startDate = getDayStart(now);
+                    endDate = getDayEnd(now);
+                    break;
+                case 'weekly':
+                    startDate = getWeekStart(now);
+                    endDate = new Date(now);
+                    break;
+                case 'monthly':
+                    startDate = getMonthStart(now);
+                    endDate = new Date(now);
+                    break;
+                default:
+                    return [];
+            }
+
+            return entries.filter(entry => {
+                const entryDate = new Date(entry.timestamp);
+                return entryDate >= startDate && entryDate <= endDate;
+            });
+        }
+
+        function updateStatistics(period, filteredEntries) {
+            const feedings = filteredEntries.filter(entry => entry.type === 'feeding');
+            const totalMilk = feedings.reduce((sum, entry) => sum + parseInt(entry.amount || 0), 0);
+            const totalPees = filteredEntries.filter(entry => entry.hasPee).length;
+            const totalPoops = filteredEntries.filter(entry => entry.hasPoop).length;
+
+            const periodElements = {
+                daily: {
+                    milk: 'total-milk',
+                    pees: 'total-pees',
+                    poops: 'total-poops'
+                },
+                weekly: {
+                    milk: 'weekly-milk',
+                    pees: 'weekly-pees',
+                    poops: 'weekly-poops',
+                    feedings: 'weekly-feedings',
+                    milkAvg: 'weekly-milk-avg',
+                    peesAvg: 'weekly-pees-avg',
+                    poopsAvg: 'weekly-poops-avg',
+                    feedingsAvg: 'weekly-feedings-avg'
+                },
+                monthly: {
+                    milk: 'monthly-milk',
+                    pees: 'monthly-pees',
+                    poops: 'monthly-poops',
+                    feedings: 'monthly-feedings',
+                    milkAvg: 'monthly-milk-avg',
+                    peesAvg: 'monthly-pees-avg',
+                    poopsAvg: 'monthly-poops-avg',
+                    feedingsAvg: 'monthly-feedings-avg'
+                }
+            };
+
+            const elemIds = periodElements[period];
+            if (!elemIds) return;
+
+            const milkEl = document.getElementById(elemIds.milk);
+            const peesEl = document.getElementById(elemIds.pees);
+            const poopsEl = document.getElementById(elemIds.poops);
+
+            if (milkEl) milkEl.textContent = totalMilk + 'ml';
+            if (peesEl) peesEl.textContent = totalPees;
+            if (poopsEl) poopsEl.textContent = totalPoops;
+
+            if (period !== 'daily') {
+                const days = period === 'weekly' ? 7 : 30;
+                const feedingsEl = document.getElementById(elemIds.feedings);
+                const milkAvgEl = document.getElementById(elemIds.milkAvg);
+                const peesAvgEl = document.getElementById(elemIds.peesAvg);
+                const poopsAvgEl = document.getElementById(elemIds.poopsAvg);
+                const feedingsAvgEl = document.getElementById(elemIds.feedingsAvg);
+
+                if (feedingsEl) feedingsEl.textContent = feedings.length;
+                if (milkAvgEl) milkAvgEl.textContent = `Moy: ${Math.round(totalMilk / days)}ml/jour`;
+                if (peesAvgEl) peesAvgEl.textContent = `Moy: ${Math.round(totalPees / days)}/jour`;
+                if (poopsAvgEl) poopsAvgEl.textContent = `Moy: ${Math.round(totalPoops / days)}/jour`;
+                if (feedingsAvgEl) feedingsAvgEl.textContent = `Moy: ${Math.round(feedings.length / days)}/jour`;
+            }
+        }
+
+        function initializeDailyChart() {
+            const ctx = document.getElementById('dailyChart').getContext('2d');
+            
+            dailyChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Lait (ml)',
+                        data: [],
+                        borderColor: '#3B82F6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                fontSize: 10
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                fontSize: 10
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateDailyChart() {
+            if (!dailyChart) return;
+
+            const now = new Date();
+            const dayStart = getDayStart(now);
+            const dayEnd = getDayEnd(now);
+            
+            const todayFeedings = entries.filter(entry => {
+                const entryDate = new Date(entry.timestamp);
+                return entry.type === 'feeding' && entryDate >= dayStart && entryDate <= dayEnd;
+            });
+
+            // Créer les points horaires de 7h à 6h30 (24h)
+            const hourLabels = [];
+            const data = [];
+            
+            for (let h = 7; h < 31; h++) { // 7h à 6h30 (24h)
+                const displayHour = h > 24 ? h - 24 : h;
+                const hourStr = h === 30 ? '6:30' : `${displayHour}h`;
+                hourLabels.push(hourStr);
+                
+                // Calculer le lait consommé jusqu'à cette heure
+                let cumulativeMilk = 0;
+                const currentTime = new Date(dayStart);
+                currentTime.setHours(h > 24 ? h - 24 : h, h === 30 ? 30 : 0);
+                
+                todayFeedings.forEach(feeding => {
+                    const feedingTime = new Date(feeding.timestamp);
+                    if (feedingTime <= currentTime) {
+                        cumulativeMilk += parseInt(feeding.amount || 0);
+                    }
+                });
+                
+                data.push(cumulativeMilk);
+            }
+
+            dailyChart.data.labels = hourLabels;
+            dailyChart.data.datasets[0].data = data;
+            dailyChart.update();
+        }
+
         function updateDisplay() {
             const age = calculateAge();
             elements.babyAge.textContent = age;
@@ -702,25 +938,38 @@
 
             updateFeedingGuide(age);
 
-            const today = new Date().toDateString();
-            const todayEntries = entries.filter(entry => {
-                return new Date(entry.timestamp).toDateString() === today;
-            });
-
-            const todayFeedings = todayEntries.filter(entry => entry.type === 'feeding');
-            const totalMilk = todayFeedings.reduce((sum, entry) => sum + parseInt(entry.amount || 0), 0);
-            const todayPees = todayEntries.filter(entry => entry.hasPee).length;
-            const todayPoops = todayEntries.filter(entry => entry.hasPoop).length;
-
-            elements.totalMilk.textContent = totalMilk + 'ml';
-            elements.totalPees.textContent = todayPees;
-            elements.totalPoops.textContent = todayPoops;
+            // Mettre à jour les statistiques selon l'onglet actif
+            const activeTab = document.querySelector('.tab-button.active').id.replace('tab-', '');
+            const filteredEntries = getFilteredEntries(activeTab);
+            updateStatistics(activeTab, filteredEntries);
 
             elements.totalEntries.textContent = entries.length;
             elements.firstEntry.textContent = entries.length > 0 ? formatDate(entries[entries.length - 1].timestamp) : 'Aucune';
             elements.lastEntry.textContent = entries.length > 0 ? formatDate(entries[0].timestamp) : 'Aucune';
 
+            updateDailyChart();
             updateHistory();
+        }
+
+        function switchTab(tabId) {
+            // Mettre à jour les classes des onglets
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+                btn.classList.add('text-gray-600');
+            });
+            
+            document.getElementById(tabId).classList.add('active');
+            document.getElementById(tabId).classList.remove('text-gray-600');
+
+            // Afficher/masquer les statistiques appropriées
+            document.getElementById('daily-stats').style.display = tabId === 'tab-daily' ? 'grid' : 'none';
+            document.getElementById('weekly-stats').style.display = tabId === 'tab-weekly' ? 'grid' : 'none';
+            document.getElementById('monthly-stats').style.display = tabId === 'tab-monthly' ? 'grid' : 'none';
+
+            // Mettre à jour les données
+            const period = tabId.replace('tab-', '');
+            const filteredEntries = getFilteredEntries(period);
+            updateStatistics(period, filteredEntries);
         }
 
         function getPoopInfo(quantity, consistency, color) {
@@ -786,7 +1035,7 @@
                     <div class="flex items-center justify-between mb-2">
                         <div class="flex items-center gap-2">
                             ${entry.type === 'feeding' ?
-                        '<svg class="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 24 24"><path d="M9 3V1h6v2c1.1 0 2 .9 2 2v3h1c.55 0 1 .45 1 1s-.45 1-1 1h-1v9c0 1.1-.9 2-2 2H9c-1.1 0-2-.9-2-2v-9H6c-.55 0-1-.45-1-1s.45-1 1-1h1V5c0-1.1.9-2 2-2zm1 2v13h4V5h-4z"></path></svg>' :
+                        '<i class="fas fa-baby-bottle text-blue-500 text-lg"></i>' :
                         '<div class="text-lg">👶</div>'
                     }
                             <span class="font-semibold text-gray-800">
@@ -794,9 +1043,7 @@
                             </span>
                         </div>
                         <div class="flex items-center gap-1 text-sm text-gray-500">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
+                            <i class="far fa-clock"></i>
                             ${formatTime(entry.timestamp)}
                         </div>
                     </div>
@@ -960,68 +1207,6 @@
 
             saveEntryToFirebase(newEntry);
             hideForm();
-            showMessage('✅ Entrée enregistrée avec succès !');
-        }
-
-        function exportData() {
-            const dataToExport = {
-                babyInfo: BABY_INFO,
-                entries: entries,
-                exportDate: new Date().toISOString(),
-                version: '1.0'
-            };
-
-            const dataStr = JSON.stringify(dataToExport, null, 2);
-            const dataBlob = new Blob([dataStr], { type: 'application/json' });
-
-            const url = URL.createObjectURL(dataBlob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `suivi-loan-${new Date().toISOString().split('T')[0]}.json`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-
-            showMessage('✅ Données de Loan exportées avec succès !');
-        }
-
-        function importData(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function (e) {
-                try {
-                    const importedData = JSON.parse(e.target.result);
-
-                    if (importedData.entries && Array.isArray(importedData.entries)) {
-                        const existingIds = new Set(entries.map(entry => entry.id));
-                        const newEntries = importedData.entries.filter(entry => !existingIds.has(entry.id));
-
-                        if (db) {
-                            newEntries.forEach(entry => {
-                                saveEntryToFirebase(entry);
-                            });
-                        } else {
-                            entries = [...entries, ...newEntries].sort((a, b) =>
-                                new Date(b.timestamp) - new Date(a.timestamp)
-                            );
-                            localStorage.setItem('babyTrackerEntries', JSON.stringify(entries));
-                            updateDisplay();
-                        }
-
-                        showMessage(`✅ ${newEntries.length} nouvelles entrées importées !`);
-                    } else {
-                        showMessage('❌ Format de fichier invalide');
-                    }
-                } catch (error) {
-                    showMessage('❌ Erreur lors de l\'import du fichier');
-                }
-            };
-
-            reader.readAsText(file);
-            event.target.value = '';
         }
 
         async function resetData() {
@@ -1030,23 +1215,13 @@
                 localStorage.removeItem('babyTrackerEntries');
                 entries = [];
                 updateDisplay();
-                showMessage('🗑️ Toutes les données ont été supprimées');
-            }
-        }
-
-        function showMessage(message) {
-            if (elements.importMessage) {
-                elements.importMessage.textContent = message;
-                elements.importMessage.style.display = 'block';
-                setTimeout(() => {
-                    elements.importMessage.style.display = 'none';
-                }, 3000);
             }
         }
 
         document.addEventListener('DOMContentLoaded', function () {
             loadEntriesLocal();
             updateDisplay();
+            initializeDailyChart();
 
             const age = calculateAge();
             updateFeedingGuide(age);
@@ -1054,6 +1229,11 @@
             setTimeout(() => {
                 initializeFirebase();
             }, 1000);
+
+            // Gestionnaires d'onglets
+            document.getElementById('tab-daily').addEventListener('click', () => switchTab('tab-daily'));
+            document.getElementById('tab-weekly').addEventListener('click', () => switchTab('tab-weekly'));
+            document.getElementById('tab-monthly').addEventListener('click', () => switchTab('tab-monthly'));
 
             document.getElementById('feeding-btn').addEventListener('click', () => showForm('feeding'));
             document.getElementById('diaper-btn').addEventListener('click', () => showForm('diaper'));
@@ -1108,8 +1288,6 @@
             });
 
             document.getElementById('close-settings').addEventListener('click', hideSettings);
-            document.getElementById('export-btn').addEventListener('click', exportData);
-            document.getElementById('import-input').addEventListener('change', importData);
             document.getElementById('reset-btn').addEventListener('click', resetData);
 
             elements.amountInput.addEventListener('input', function () {
