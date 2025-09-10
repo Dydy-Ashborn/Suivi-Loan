@@ -6,6 +6,7 @@
     <title>Suivi Loan - Dylan & Chloé</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👶</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
+    
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
         
@@ -43,15 +44,6 @@
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
-
-        /* Icônes SVG intégrées */
-        .icon-baby { width: 24px; height: 24px; }
-        .icon-milk { width: 20px; height: 20px; }
-        .icon-settings { width: 20px; height: 20px; }
-        .icon-download { width: 16px; height: 16px; }
-        .icon-upload { width: 16px; height: 16px; }
-        .icon-clock { width: 16px; height: 16px; }
-        .icon-calendar { width: 20px; height: 20px; }
     </style>
 </head>
 <body class="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
@@ -185,6 +177,22 @@
                 </button>
             </div>
 
+            <!-- Synchronisation Firebase -->
+            <div class="mb-6 p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-200">
+                <h4 class="font-semibold text-green-800 mb-2 flex items-center gap-2">
+                    <div id="connection-indicator" class="w-3 h-3 bg-yellow-500 rounded-full animate-pulse"></div>
+                    Synchronisation Firebase
+                </h4>
+                <div class="text-sm text-green-700 space-y-1">
+                    <p><strong>✅ Temps réel :</strong> Dylan et Chloé voient les mises à jour instantanément</p>
+                    <p><strong>☁️ Cloud :</strong> Données sauvegardées automatiquement</p>
+                    <p><strong>📱 Multi-appareils :</strong> Accessible partout</p>
+                </div>
+                <div class="mt-2 text-xs text-green-600">
+                    Statut : <span id="firebase-status" class="font-medium">🔄 Initialisation...</span>
+                </div>
+            </div>
+
             <!-- Informations de Loan -->
             <div class="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
                 <h4 class="font-semibold text-blue-800 mb-3 flex items-center gap-2">
@@ -236,14 +244,6 @@
                         <input type="file" id="import-input" accept=".json" class="hidden">
                     </label>
                 </div>
-            </div> justify-center gap-2 cursor-pointer">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"></path>
-                        </svg>
-                        Importer
-                        <input type="file" id="import-input" accept=".json" class="hidden">
-                    </label>
-                </div>
             </div>
 
             <!-- Statistiques -->
@@ -283,17 +283,45 @@
         </div>
     </div>
 
-    <script>
-        // Configuration
-        const BABY_BIRTH_DATE = new Date('2025-09-06T06:38:00');
-        const BABY_INFO = {
-            name: 'Loan',
-            birthWeight: 3.290,
-            birthLength: 48,
-            parents: ['Dylan', 'Chloé']
+    <!-- Firebase SDK v9 -->
+    <script type="module">
+        // Import des modules Firebase
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js';
+        import { 
+            getFirestore, 
+            collection, 
+            addDoc, 
+            onSnapshot, 
+            query, 
+            orderBy, 
+            deleteDoc, 
+            doc,
+            getDocs
+        } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js';
+
+        // Configuration Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyCPQpB3cYk2sgbOVQ8KLbU1Qj2U67D2rZ4",
+            authDomain: "suivi-loan.firebaseapp.com",
+            projectId: "suivi-loan",
+            storageBucket: "suivi-loan.firebasestorage.app",
+            messagingSenderId: "334984699415",
+            appId: "1:334984699415:web:8b41abb9360d31efabc652",
+            measurementId: "G-RWZ0S704RJ"
         };
 
-        // Variables d'état
+        // Initialisation Firebase
+        let app, db;
+        
+        try {
+            app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            console.log('Firebase initialisé avec succès');
+        } catch (error) {
+            console.error('Erreur initialisation Firebase:', error);
+        }
+
+        // Variables globales
         let entries = [];
         let currentEntry = {
             type: '',
@@ -302,6 +330,15 @@
             hasPoop: false,
             poopConsistency: '',
             timestamp: new Date().toISOString()
+        };
+
+        // Configuration bébé
+        const BABY_BIRTH_DATE = new Date('2025-09-06T06:38:00');
+        const BABY_INFO = {
+            name: 'Loan',
+            birthWeight: 3.290,
+            birthLength: 48,
+            parents: ['Dylan', 'Chloé']
         };
 
         // Éléments DOM
@@ -324,7 +361,9 @@
             importMessage: document.getElementById('import-message'),
             totalEntries: document.getElementById('total-entries'),
             firstEntry: document.getElementById('first-entry'),
-            lastEntry: document.getElementById('last-entry')
+            lastEntry: document.getElementById('last-entry'),
+            firebaseStatus: document.getElementById('firebase-status'),
+            connectionIndicator: document.getElementById('connection-indicator')
         };
 
         // Calcul de l'âge
@@ -332,14 +371,13 @@
             const now = new Date();
             const birthDate = new Date(BABY_BIRTH_DATE);
             
-            // Réinitialiser les heures pour calculer uniquement les jours complets
             const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
             const birth = new Date(birthDate.getFullYear(), birthDate.getMonth(), birthDate.getDate());
             
             const diffTime = today - birth;
             const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
             
-            return Math.max(0, diffDays); // Au minimum 0 jours
+            return Math.max(0, diffDays);
         }
 
         // Formatage des dates
@@ -358,16 +396,138 @@
             });
         }
 
-        // Chargement et sauvegarde des données
-        function loadEntries() {
-            const saved = localStorage.getItem('babyTrackerEntries');
-            if (saved) {
-                entries = JSON.parse(saved);
+        // Mise à jour du statut Firebase
+        function updateFirebaseStatus(status, isConnected = false) {
+            if (elements.firebaseStatus) {
+                elements.firebaseStatus.textContent = status;
+            }
+            if (elements.connectionIndicator) {
+                if (isConnected) {
+                    elements.connectionIndicator.className = 'w-3 h-3 bg-green-500 rounded-full';
+                } else {
+                    elements.connectionIndicator.className = 'w-3 h-3 bg-yellow-500 rounded-full animate-pulse';
+                }
             }
         }
 
-        function saveEntries() {
-            localStorage.setItem('babyTrackerEntries', JSON.stringify(entries));
+        // Initialisation des données Firebase
+        function initializeFirebase() {
+            if (!db) {
+                console.error('Firebase non initialisé');
+                updateFirebaseStatus('❌ Firebase non disponible');
+                loadEntriesLocal();
+                return;
+            }
+
+            try {
+                updateFirebaseStatus('🔄 Connexion...');
+                
+                const q = query(collection(db, 'entries'), orderBy('timestamp', 'desc'));
+                
+                onSnapshot(q, (snapshot) => {
+                    console.log('Données reçues de Firebase:', snapshot.size, 'entrées');
+                    entries = [];
+                    
+                    snapshot.forEach((doc) => {
+                        const data = doc.data();
+                        entries.push({
+                            id: doc.id,
+                            ...data
+                        });
+                    });
+                    
+                    updateDisplay();
+                    updateFirebaseStatus('✅ Connecté et synchronisé', true);
+                    
+                    // Sauvegarder en local comme backup
+                    localStorage.setItem('babyTrackerEntries', JSON.stringify(entries));
+                }, (error) => {
+                    console.error('Erreur Firebase onSnapshot:', error);
+                    updateFirebaseStatus('❌ Erreur de connexion');
+                    loadEntriesLocal();
+                });
+                
+            } catch (error) {
+                console.error('Erreur lors de l\'initialisation Firebase:', error);
+                updateFirebaseStatus('❌ Erreur Firebase');
+                loadEntriesLocal();
+            }
+        }
+
+        // Chargement local
+        function loadEntriesLocal() {
+            const saved = localStorage.getItem('babyTrackerEntries');
+            if (saved) {
+                try {
+                    entries = JSON.parse(saved);
+                    updateDisplay();
+                    console.log('Données chargées depuis localStorage:', entries.length, 'entrées');
+                } catch (error) {
+                    console.error('Erreur parsing localStorage:', error);
+                    entries = [];
+                }
+            }
+        }
+
+        // Sauvegarde dans Firebase
+        async function saveEntryToFirebase(entry) {
+            if (!db) {
+                console.error('Firebase non disponible');
+                showMessage('❌ Firebase non disponible, sauvegarde locale');
+                entries.unshift({...entry, id: Date.now().toString()});
+                localStorage.setItem('babyTrackerEntries', JSON.stringify(entries));
+                updateDisplay();
+                return;
+            }
+
+            try {
+                updateFirebaseStatus('💾 Sauvegarde...');
+                
+                const docRef = await addDoc(collection(db, 'entries'), {
+                    type: entry.type,
+                    amount: entry.amount,
+                    hasPee: entry.hasPee,
+                    hasPoop: entry.hasPoop,
+                    poopConsistency: entry.poopConsistency,
+                    timestamp: entry.timestamp
+                });
+                
+                console.log('Entrée sauvegardée avec ID:', docRef.id);
+                updateFirebaseStatus('✅ Sauvegardé', true);
+                
+            } catch (error) {
+                console.error('Erreur sauvegarde Firebase:', error);
+                updateFirebaseStatus('❌ Erreur sauvegarde');
+                showMessage('❌ Erreur Firebase, sauvegarde locale');
+                
+                // Fallback local
+                entries.unshift({...entry, id: Date.now().toString()});
+                localStorage.setItem('babyTrackerEntries', JSON.stringify(entries));
+                updateDisplay();
+            }
+        }
+
+        // Suppression Firebase
+        async function deleteAllEntriesFirebase() {
+            if (!db) {
+                console.error('Firebase non disponible');
+                return;
+            }
+
+            try {
+                const querySnapshot = await getDocs(collection(db, 'entries'));
+                const deletePromises = [];
+                
+                querySnapshot.forEach((document) => {
+                    deletePromises.push(deleteDoc(doc(db, 'entries', document.id)));
+                });
+                
+                await Promise.all(deletePromises);
+                console.log('Toutes les entrées supprimées de Firebase');
+                
+            } catch (error) {
+                console.error('Erreur suppression Firebase:', error);
+            }
         }
 
         // Mise à jour de l'affichage
@@ -542,15 +702,11 @@
 
             const newEntry = {
                 ...currentEntry,
-                id: Date.now(),
                 timestamp: new Date().toISOString()
             };
 
-            entries.unshift(newEntry);
-            saveEntries();
-            updateDisplay();
+            saveEntryToFirebase(newEntry);
             hideForm();
-
             showMessage('✅ Entrée enregistrée avec succès !');
         }
 
@@ -592,12 +748,19 @@
                         const existingIds = new Set(entries.map(entry => entry.id));
                         const newEntries = importedData.entries.filter(entry => !existingIds.has(entry.id));
 
-                        entries = [...entries, ...newEntries].sort((a, b) => 
-                            new Date(b.timestamp) - new Date(a.timestamp)
-                        );
+                        // Ajouter à Firebase si disponible
+                        if (db) {
+                            newEntries.forEach(entry => {
+                                saveEntryToFirebase(entry);
+                            });
+                        } else {
+                            entries = [...entries, ...newEntries].sort((a, b) => 
+                                new Date(b.timestamp) - new Date(a.timestamp)
+                            );
+                            localStorage.setItem('babyTrackerEntries', JSON.stringify(entries));
+                            updateDisplay();
+                        }
 
-                        saveEntries();
-                        updateDisplay();
                         showMessage(`✅ ${newEntries.length} nouvelles entrées importées !`);
                     } else {
                         showMessage('❌ Format de fichier invalide');
@@ -612,10 +775,15 @@
         }
 
         // Réinitialisation des données
-        function resetData() {
+        async function resetData() {
             if (confirm('⚠️ Êtes-vous sûr de vouloir effacer toutes les données ? Cette action est irréversible.')) {
+                // Supprimer de Firebase
+                await deleteAllEntriesFirebase();
+                
+                // Vider localStorage
+                localStorage.removeItem('babyTrackerEntries');
+                
                 entries = [];
-                saveEntries();
                 updateDisplay();
                 showMessage('🗑️ Toutes les données ont été supprimées');
             }
@@ -623,27 +791,25 @@
 
         // Affichage des messages
         function showMessage(message) {
-            elements.importMessage.textContent = message;
-            elements.importMessage.style.display = 'block';
-            setTimeout(() => {
-                elements.importMessage.style.display = 'none';
-            }, 3000);
+            if (elements.importMessage) {
+                elements.importMessage.textContent = message;
+                elements.importMessage.style.display = 'block';
+                setTimeout(() => {
+                    elements.importMessage.style.display = 'none';
+                }, 3000);
+            }
         }
 
         // Event listeners
         document.addEventListener('DOMContentLoaded', function() {
-            updateFirebaseStatus('🔄 Connexion...');
-            
-            // Attendre que Firebase soit prêt
-            if (window.firebaseReady) {
-                initializeFirebase();
-            } else {
-                document.addEventListener('firebase-ready', initializeFirebase);
-            }
-            
-            // Fallback: charger depuis localStorage en attendant
+            // Charger données locales immédiatement
             loadEntriesLocal();
             updateDisplay();
+            
+            // Initialiser Firebase
+            setTimeout(() => {
+                initializeFirebase();
+            }, 1000);
 
             // Boutons principaux
             document.getElementById('feeding-btn').addEventListener('click', () => showForm('feeding'));
