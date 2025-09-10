@@ -154,12 +154,18 @@ function formatDateTime(timestamp) {
 
 function getCurrentTimeString() {
     const now = new Date();
-    return now.toTimeString().slice(0, 5);
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    return `${hours}:${minutes}`;
 }
 
 function getCurrentDateString() {
     const now = new Date();
-    return now.toISOString().slice(0, 10);
+    // Utiliser directement les méthodes locales pour éviter les problèmes de timezone
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
 }
 
 function createTimestampFromInputs() {
@@ -170,11 +176,22 @@ function createTimestampFromInputs() {
         return new Date().toISOString();
     }
 
-    const [hours, minutes] = timeValue.split(':').map(Number);
-    const date = new Date(dateValue);
-    date.setHours(hours, minutes, 0, 0);
-
-    return date.toISOString();
+    try {
+        const [hours, minutes] = timeValue.split(':').map(Number);
+        const date = new Date(dateValue + 'T00:00:00');
+        
+        // Vérifier que la date est valide
+        if (isNaN(date.getTime())) {
+            console.error('Date invalide:', dateValue);
+            return new Date().toISOString();
+        }
+        
+        date.setHours(hours, minutes, 0, 0);
+        return date.toISOString();
+    } catch (error) {
+        console.error('Erreur création timestamp:', error);
+        return new Date().toISOString();
+    }
 }
 
 function getDayStart(date) {
@@ -211,21 +228,21 @@ function getMonthStart(date) {
 }
 
 // === NOTIFICATIONS NTFY ===
-async function sendNotification(message, title = 'Petit Loan', priority = 'default', tags = 'baby') {
-    try {
-        await fetch(NTFY_URL, {
-            method: 'POST',
-            body: message,
-            headers: {
-                'Title': title,
-                'Priority': priority,
-                'Tags': tags
-            }
-        });
-    } catch (error) {
-        console.error('Erreur notification:', error);
-    }
-}
+// async function sendNotification(message, title = 'Petit Loan', priority = 'default', tags = 'baby') {
+//     try {
+//         await fetch(NTFY_URL, {
+//             method: 'POST',
+//             body: message,
+//             headers: {
+//                 'Title': title,
+//                 'Priority': priority,
+//                 'Tags': tags
+//             }
+//         });
+//     } catch (error) {
+//         console.error('Erreur notification:', error);
+//     }
+// }
 
 // === FONCTIONS D'ALIMENTATION ===
 function getFeedingRecommendations(ageInDays) {
@@ -748,8 +765,10 @@ function showForm(type) {
             timestamp: new Date().toISOString()
         };
 
+        // CORRECTION: Initialiser avec la date/heure actuelle
         elements.timeInput.value = getCurrentTimeString();
         elements.dateInput.value = getCurrentDateString();
+        
         elements.formTitle.textContent = type === 'feeding' ? '🍼 Nouveau biberon' : '👶 Nouvelle couche';
         elements.saveBtnText.textContent = 'Enregistrer';
     }
@@ -783,8 +802,10 @@ function hideForm() {
     editingId = null;
     elements.amountInput.value = '';
     elements.amountInput.placeholder = 'Ex: 120';
-    elements.timeInput.value = '';
-    elements.dateInput.value = '';
+    
+    // CORRECTION: Réinitialiser aux valeurs actuelles
+    elements.timeInput.value = getCurrentTimeString();
+    elements.dateInput.value = getCurrentDateString();
 
     document.getElementById('poop-quantity').value = '';
     document.getElementById('poop-consistency').value = '';
@@ -828,47 +849,30 @@ function resetFormButtons() {
 
 // === GESTION DES ENTRÉES ===
 function addEntry() {
-    if (currentEntry.type === 'feeding' && !elements.amountInput.value) return;
+    // Validation pour les biberons
+    if (currentEntry.type === 'feeding' && !elements.amountInput.value) {
+        alert('Veuillez saisir la quantité de lait');
+        return;
+    }
+
+    // Validation pour les couches (au moins pipi ou caca)
+    if (currentEntry.type === 'diaper' && !currentEntry.hasPee && !currentEntry.hasPoop) {
+        alert('Veuillez indiquer au moins pipi ou caca pour la couche');
+        return;
+    }
 
     if (currentEntry.type === 'feeding') {
         currentEntry.amount = elements.amountInput.value;
     }
 
+    // CORRECTION: S'assurer que le timestamp est correct
     currentEntry.timestamp = createTimestampFromInputs();
 
     const newEntry = { ...currentEntry };
 
     saveEntryToFirebase(newEntry);
-
-    // Notifications
-    if (newEntry.type === 'feeding') {
-        const peePoop = [];
-        if (newEntry.hasPee) peePoop.push('💧 pipi');
-        if (newEntry.hasPoop) peePoop.push('💩 caca');
-        const extras = peePoop.length > 0 ? ` + ${peePoop.join(' + ')}` : '';
-
-        sendNotification(
-            `🍼 Biberon de ${newEntry.amount}ml donné à ${formatTime(newEntry.timestamp)}${extras}`,
-            'Biberon - Petit Loan',
-            'default',
-            'bottle,baby,feeding'
-        );
-    } else if (newEntry.hasPee || newEntry.hasPoop) {
-        const items = [];
-        if (newEntry.hasPee) items.push('💧 pipi');
-        if (newEntry.hasPoop) items.push('💩 caca');
-
-        sendNotification(
-            `👶 Couche changée (${items.join(' + ')}) à ${formatTime(newEntry.timestamp)}`,
-            'Couche - Petit Loan',
-            'default',
-            'diaper,baby'
-        );
-    }
-
     hideForm();
 }
-
 function editEntry(entryId) {
     const entry = entries.find(e => e.id === entryId);
     if (!entry) return;
@@ -1086,6 +1090,7 @@ function showMedicationForm() {
     elements.actionButtons.style.display = 'none';
     elements.historySection.style.display = 'none';
 
+    // CORRECTION: Initialiser avec la date/heure actuelle
     document.getElementById('medication-date').value = getCurrentDateString();
     document.getElementById('medication-time').value = getCurrentTimeString();
 }
@@ -1112,30 +1117,33 @@ function saveMedication() {
         return;
     }
 
-    const medication = {
-        id: Date.now().toString(),
-        name,
-        dosage,
-        timestamp: new Date(`${date}T${time}`).toISOString(),
-        interval: interval ? parseInt(interval) : null,
-        lastGiven: new Date(`${date}T${time}`).toISOString()
-    };
+    try {
+        const medication = {
+            id: Date.now().toString(),
+            name,
+            dosage,
+            timestamp: new Date(`${date}T${time}:00`).toISOString(),
+            interval: interval ? parseInt(interval) : null,
+            lastGiven: new Date(`${date}T${time}:00`).toISOString()
+        };
 
-    medications.unshift(medication);
-    localStorage.setItem('babyMedications', JSON.stringify(medications));
+        medications.unshift(medication);
+        localStorage.setItem('babyMedications', JSON.stringify(medications));
 
-    if (db) {
-        saveMedicationToFirebase(medication);
+        if (db) {
+            saveMedicationToFirebase(medication);
+        }
+
+        updateMedicationDisplay();
+        hideMedicationForm();
+
+        if (interval) {
+            scheduleNextMedicationNotification(medication);
+        }
+    } catch (error) {
+        console.error('Erreur sauvegarde médicament:', error);
+        alert('Erreur lors de la sauvegarde du médicament');
     }
-
-    updateMedicationDisplay();
-    hideMedicationForm();
-
-    if (interval) {
-        scheduleNextMedicationNotification(medication);
-    }
-
-    sendNotification(`💊 Médicament enregistré: ${name} (${dosage}) donné à ${formatTime(medication.timestamp)}`);
 }
 
 async function saveMedicationToFirebase(medication) {
@@ -1256,6 +1264,9 @@ function showAppointmentForm() {
     document.getElementById('appointment-form').style.display = 'block';
     elements.actionButtons.style.display = 'none';
     elements.historySection.style.display = 'none';
+    
+    // CORRECTION: Initialiser avec la date actuelle (pas l'heure pour les RDV)
+    document.getElementById('appointment-date').value = getCurrentDateString();
 }
 
 function hideAppointmentForm() {
@@ -1282,30 +1293,31 @@ function saveAppointment() {
         return;
     }
 
-    const appointment = {
-        id: Date.now().toString(),
-        type,
-        doctor,
-        location,
-        timestamp: new Date(`${date}T${time}`).toISOString()
-    };
+    try {
+        const appointment = {
+            id: Date.now().toString(),
+            type,
+            doctor,
+            location,
+            timestamp: new Date(`${date}T${time}:00`).toISOString()
+        };
 
-    appointments.unshift(appointment);
-    localStorage.setItem('babyAppointments', JSON.stringify(appointments));
+        appointments.unshift(appointment);
+        localStorage.setItem('babyAppointments', JSON.stringify(appointments));
 
-    if (db) {
-        saveAppointmentToFirebase(appointment);
+        if (db) {
+            saveAppointmentToFirebase(appointment);
+        }
+
+        updateAppointmentDisplay();
+        hideAppointmentForm();
+
+        scheduleAppointmentReminder(appointment);
+    } catch (error) {
+        console.error('Erreur sauvegarde RDV:', error);
+        alert('Erreur lors de la sauvegarde du rendez-vous');
     }
-
-    updateAppointmentDisplay();
-    hideAppointmentForm();
-
-    scheduleAppointmentReminder(appointment);
-
-    const appointmentDateTime = formatDateTime(appointment.timestamp);
-    sendNotification(`🏥 RDV programmé: ${type} le ${appointmentDateTime} ${doctor ? 'chez ' + doctor : ''}`);
 }
-
 async function saveAppointmentToFirebase(appointment) {
     try {
         await addDoc(collection(db, 'appointments'), appointment);
@@ -1661,6 +1673,28 @@ document.addEventListener('DOMContentLoaded', function () {
             saveBtn.disabled = false;
         }
     });
+     const nowBtn = document.getElementById('now-btn');
+    if (nowBtn) {
+        nowBtn.addEventListener('click', function () {
+            elements.timeInput.value = getCurrentTimeString();
+        });
+    }
+
+    // CORRECTION: Event listener pour le bouton "Aujourd'hui" 
+    const todayBtn = document.getElementById('today-btn');
+    if (todayBtn) {
+        todayBtn.addEventListener('click', function () {
+            elements.dateInput.value = getCurrentDateString();
+        });
+    }
+
+    // CORRECTION: Initialiser les champs de date/heure au chargement
+    if (elements.timeInput) {
+        elements.timeInput.value = getCurrentTimeString();
+    }
+    if (elements.dateInput) {
+        elements.dateInput.value = getCurrentDateString();
+    }
 
     // Mettre à jour l'affichage des médicaments toutes les minutes
     setInterval(updateMedicationDisplay, 60000);
