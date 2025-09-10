@@ -334,13 +334,12 @@ function updateFeedingGuide(ageInDays) {
 // === GESTION FIREBASE ===
 function initializeFirebase() {
     if (!db) {
-        loadEntriesLocal();
-        loadMedicalData();
+        console.error('Firebase non disponible');
         return;
     }
 
     try {
-        // Sync des entrées (biberons/couches)
+        // Sync des entrées (biberons/couches) - garder comme avant
         const entriesQuery = query(collection(db, 'entries'), orderBy('timestamp', 'desc'));
         onSnapshot(entriesQuery, (snapshot) => {
             entries = [];
@@ -355,10 +354,9 @@ function initializeFirebase() {
             localStorage.setItem('babyTrackerEntries', JSON.stringify(entries));
         }, (error) => {
             console.error('Erreur sync entries:', error);
-            loadEntriesLocal();
         });
 
-        // Sync des médicaments
+        // Sync des médicaments (Firebase uniquement)
         const medicationsQuery = query(collection(db, 'medications'), orderBy('timestamp', 'desc'));
         onSnapshot(medicationsQuery, (snapshot) => {
             medications = [];
@@ -369,13 +367,14 @@ function initializeFirebase() {
                     ...data
                 });
             });
+            console.log(`${medications.length} médicaments chargés depuis Firebase`);
             updateMedicationDisplay();
-            localStorage.setItem('babyMedications', JSON.stringify(medications));
+            // PAS de localStorage pour les médicaments
         }, (error) => {
             console.error('Erreur sync médicaments:', error);
         });
 
-        // Sync des rendez-vous
+        // Sync des rendez-vous (Firebase uniquement)
         const appointmentsQuery = query(collection(db, 'appointments'), orderBy('timestamp', 'desc'));
         onSnapshot(appointmentsQuery, (snapshot) => {
             appointments = [];
@@ -386,34 +385,45 @@ function initializeFirebase() {
                     ...data
                 });
             });
+            console.log(`${appointments.length} rendez-vous chargés depuis Firebase`);
             updateAppointmentDisplay();
-            localStorage.setItem('babyAppointments', JSON.stringify(appointments));
+            // PAS de localStorage pour les RDV
         }, (error) => {
             console.error('Erreur sync RDV:', error);
         });
 
-        // Sync des stocks
-        const stocksQuery = query(collection(db, 'stocks'));
-        onSnapshot(stocksQuery, (snapshot) => {
-            snapshot.forEach((doc) => {
-                const data = doc.data();
-                if (data.type === 'milk-powder' && data.date) {
-                    document.getElementById('milk-powder-date').textContent = data.date;
-                    localStorage.setItem('milkPowderDate', data.date);
-                }
-                if (data.type === 'water-bottle' && data.datetime) {
-                    document.getElementById('water-bottle-datetime').textContent = data.datetime;
-                    localStorage.setItem('waterBottleDateTime', data.datetime);
-                }
-            });
-        }, (error) => {
-            console.error('Erreur sync stocks:', error);
-        });
+        // Sync des stocks - garder comme avant
+    const stocksQuery = query(collection(db, 'stocks'));
+onSnapshot(stocksQuery, (snapshot) => {
+    console.log(`${snapshot.size} éléments de stock chargés depuis Firebase`);
+    
+    snapshot.forEach((doc) => {
+        const data = doc.data();
+        
+        if (data.type === 'milk-powder' && data.date) {
+            const element = document.getElementById('milk-powder-date');
+            if (element) {
+                element.textContent = data.date;
+                console.log('Date lait en poudre affichée:', data.date);
+            }
+            // PAS de localStorage pour être cohérent avec les autres données
+        }
+        
+        if (data.type === 'water-bottle' && data.datetime) {
+            const element = document.getElementById('water-bottle-datetime');
+            if (element) {
+                element.textContent = data.datetime;
+                console.log('Date/heure bouteille affichée:', data.datetime);
+            }
+            // PAS de localStorage pour être cohérent avec les autres données
+        }
+    });
+}, (error) => {
+    console.error('Erreur sync stocks:', error);
+});
 
     } catch (error) {
         console.error('Erreur Firebase:', error);
-        loadEntriesLocal();
-        loadMedicalData();
     }
 }
 
@@ -1105,7 +1115,7 @@ function hideMedicationForm() {
     document.getElementById('medication-interval').value = '';
 }
 
-function saveMedication() {
+async function saveMedication() {
     const name = document.getElementById('medication-name').value;
     const dosage = document.getElementById('medication-dosage').value;
     const date = document.getElementById('medication-date').value;
@@ -1117,9 +1127,13 @@ function saveMedication() {
         return;
     }
 
+    if (!db) {
+        alert('Firebase non disponible');
+        return;
+    }
+
     try {
         const medication = {
-            id: Date.now().toString(),
             name,
             dosage,
             timestamp: new Date(`${date}T${time}:00`).toISOString(),
@@ -1127,21 +1141,16 @@ function saveMedication() {
             lastGiven: new Date(`${date}T${time}:00`).toISOString()
         };
 
-        medications.unshift(medication);
-        localStorage.setItem('babyMedications', JSON.stringify(medications));
-
-        if (db) {
-            saveMedicationToFirebase(medication);
-        }
-
-        updateMedicationDisplay();
+        // Sauvegarder UNIQUEMENT dans Firebase
+        await addDoc(collection(db, 'medications'), medication);
+        
+        console.log('Médicament sauvegardé dans Firebase');
         hideMedicationForm();
-
-        if (interval) {
-            scheduleNextMedicationNotification(medication);
-        }
+        
+        // Les données s'afficheront automatiquement via onSnapshot
+        
     } catch (error) {
-        console.error('Erreur sauvegarde médicament:', error);
+        console.error('Erreur sauvegarde médicament Firebase:', error);
         alert('Erreur lors de la sauvegarde du médicament');
     }
 }
@@ -1171,14 +1180,19 @@ function updateMedicationDisplay() {
 
         if (medication.interval) {
             if (hoursSinceLastDose < medication.interval) {
+                // Calculer l'heure de la prochaine prise
+                const nextDose = new Date(lastGiven);
+                nextDose.setHours(nextDose.getHours() + medication.interval);
+                
                 const hoursRemaining = medication.interval - hoursSinceLastDose;
+                
                 if (hoursRemaining <= 1) {
                     statusClass = 'medication-soon pulse-gentle';
-                    statusText = `Dans ${Math.round(hoursRemaining * 60)} min`;
+                    statusText = `Prochaine prise à : ${formatTime(nextDose.toISOString())}`;
                     statusIcon = '⏰';
                 } else {
                     statusClass = 'medication-waiting';
-                    statusText = `Dans ${Math.round(hoursRemaining)}h`;
+                    statusText = `Prochaine prise à : ${formatTime(nextDose.toISOString())}`;
                     statusIcon = '⏳';
                 }
             }
@@ -1216,24 +1230,30 @@ function updateMedicationDisplay() {
     });
 }
 
-function giveMedication(medicationId) {
+async function giveMedication(medicationId) {
     const medication = medications.find(m => m.id === medicationId);
     if (!medication) return;
 
-    medication.lastGiven = new Date().toISOString();
-    localStorage.setItem('babyMedications', JSON.stringify(medications));
+    if (!db) {
+        alert('Firebase non disponible');
+        return;
+    }
 
-    updateMedicationDisplay();
-
-    sendNotification(
-        `💊 ${medication.name} (${medication.dosage}) donné à ${formatTime(medication.lastGiven)}`,
-        'Médicament administré',
-        'default',
-        'pill,baby,given'
-    );
-
-    if (medication.interval) {
-        scheduleNextMedicationNotification(medication);
+    const newLastGiven = new Date().toISOString();
+    
+    try {
+        // Mettre à jour dans Firebase
+        await updateDoc(doc(db, 'medications', medicationId), {
+            lastGiven: newLastGiven
+        });
+        
+        console.log('Médicament mis à jour dans Firebase');
+        
+        // L'affichage se mettra à jour automatiquement via onSnapshot
+        
+    } catch (error) {
+        console.error('Erreur mise à jour médicament Firebase:', error);
+        alert('Erreur lors de la mise à jour');
     }
 }
 
@@ -1280,8 +1300,7 @@ function hideAppointmentForm() {
     document.getElementById('appointment-time').value = '';
     document.getElementById('appointment-location').value = '';
 }
-
-function saveAppointment() {
+async function saveAppointment() {
     const type = document.getElementById('appointment-type').value;
     const doctor = document.getElementById('appointment-doctor').value;
     const date = document.getElementById('appointment-date').value;
@@ -1293,28 +1312,29 @@ function saveAppointment() {
         return;
     }
 
+    if (!db) {
+        alert('Firebase non disponible');
+        return;
+    }
+
     try {
         const appointment = {
-            id: Date.now().toString(),
             type,
             doctor,
             location,
             timestamp: new Date(`${date}T${time}:00`).toISOString()
         };
 
-        appointments.unshift(appointment);
-        localStorage.setItem('babyAppointments', JSON.stringify(appointments));
-
-        if (db) {
-            saveAppointmentToFirebase(appointment);
-        }
-
-        updateAppointmentDisplay();
+        // Sauvegarder UNIQUEMENT dans Firebase
+        await addDoc(collection(db, 'appointments'), appointment);
+        
+        console.log('Rendez-vous sauvegardé dans Firebase');
         hideAppointmentForm();
-
-        scheduleAppointmentReminder(appointment);
+        
+        // Les données s'afficheront automatiquement via onSnapshot
+        
     } catch (error) {
-        console.error('Erreur sauvegarde RDV:', error);
+        console.error('Erreur sauvegarde RDV Firebase:', error);
         alert('Erreur lors de la sauvegarde du rendez-vous');
     }
 }
@@ -1375,42 +1395,44 @@ function updateAppointmentDisplay() {
     });
 }
 
-function deleteMedication(medicationId) {
-    if (confirm('Supprimer ce médicament ?')) {
-        if (db) {
-            // Supprimer directement de Firebase, la sync se charge du reste
-            deleteDoc(doc(db, 'medications', medicationId)).catch(error => {
-                console.error('Erreur suppression:', error);
-                // Fallback local si erreur
-                medications = medications.filter(m => m.id !== medicationId);
-                localStorage.setItem('babyMedications', JSON.stringify(medications));
-                updateMedicationDisplay();
-            });
-        } else {
-            medications = medications.filter(m => m.id !== medicationId);
-            localStorage.setItem('babyMedications', JSON.stringify(medications));
-            updateMedicationDisplay();
-        }
+async function deleteMedication(medicationId) {
+    if (!confirm('Supprimer ce médicament ?')) return;
+    
+    if (!db) {
+        alert('Firebase non disponible');
+        return;
+    }
+
+    try {
+        await deleteDoc(doc(db, 'medications', medicationId));
+        console.log('Médicament supprimé de Firebase');
+        
+        // L'affichage se mettra à jour automatiquement via onSnapshot
+        
+    } catch (error) {
+        console.error('Erreur suppression médicament Firebase:', error);
+        alert('Erreur lors de la suppression');
     }
 }
+async function deleteAppointment(appointmentId) {
+    if (!confirm('Supprimer ce rendez-vous ?')) return;
+    
+    if (!db) {
+        alert('Firebase non disponible');
+        return;
+    }
 
-function deleteAppointment(appointmentId) {
-    if (confirm('Supprimer ce rendez-vous ?')) {
-        if (db) {
-            deleteDoc(doc(db, 'appointments', appointmentId)).catch(error => {
-                console.error('Erreur suppression:', error);
-                appointments = appointments.filter(a => a.id !== appointmentId);
-                localStorage.setItem('babyAppointments', JSON.stringify(appointments));
-                updateAppointmentDisplay();
-            });
-        } else {
-            appointments = appointments.filter(a => a.id !== appointmentId);
-            localStorage.setItem('babyAppointments', JSON.stringify(appointments));
-            updateAppointmentDisplay();
-        }
+    try {
+        await deleteDoc(doc(db, 'appointments', appointmentId));
+        console.log('Rendez-vous supprimé de Firebase');
+        
+        // L'affichage se mettra à jour automatiquement via onSnapshot
+        
+    } catch (error) {
+        console.error('Erreur suppression RDV Firebase:', error);
+        alert('Erreur lors de la suppression');
     }
 }
-
 async function scheduleAppointmentReminder(appointment) {
     const appointmentDate = new Date(appointment.timestamp);
     const reminderDate = new Date(appointmentDate);
@@ -1436,19 +1458,69 @@ async function scheduleAppointmentReminder(appointment) {
 }
 
 // === GESTION DES STOCKS ===
-function setMilkPowderDate() {
+async function setMilkPowderDate() {
     const date = prompt('Date d\'ouverture du lait en poudre (JJ/MM/AAAA):');
-    if (date) {
-        document.getElementById('milk-powder-date').textContent = date;
-        localStorage.setItem('milkPowderDate', date);
+    if (!date) return;
+
+    if (!db) {
+        alert('Firebase non disponible');
+        return;
+    }
+
+    try {
+        // Supprimer l'ancien enregistrement s'il existe
+        const existingQuery = query(collection(db, 'stocks'), where('type', '==', 'milk-powder'));
+        const querySnapshot = await getDocs(existingQuery);
+        
+        querySnapshot.forEach(async (document) => {
+            await deleteDoc(doc(db, 'stocks', document.id));
+        });
+
+        // Ajouter le nouveau
+        await addDoc(collection(db, 'stocks'), {
+            type: 'milk-powder',
+            date: date,
+            timestamp: new Date().toISOString()
+        });
+
+        console.log('Date lait en poudre sauvegardée dans Firebase');
+        
+    } catch (error) {
+        console.error('Erreur sauvegarde date lait Firebase:', error);
+        alert('Erreur lors de la sauvegarde');
     }
 }
 
-function setWaterBottleDateTime() {
+async function setWaterBottleDateTime() {
     const datetime = prompt('Date et heure d\'ouverture de la bouteille d\'eau (JJ/MM/AAAA HH:MM):');
-    if (datetime) {
-        document.getElementById('water-bottle-datetime').textContent = datetime;
-        localStorage.setItem('waterBottleDateTime', datetime);
+    if (!datetime) return;
+
+    if (!db) {
+        alert('Firebase non disponible');
+        return;
+    }
+
+    try {
+        // Supprimer l'ancien enregistrement s'il existe
+        const existingQuery = query(collection(db, 'stocks'), where('type', '==', 'water-bottle'));
+        const querySnapshot = await getDocs(existingQuery);
+        
+        querySnapshot.forEach(async (document) => {
+            await deleteDoc(doc(db, 'stocks', document.id));
+        });
+
+        // Ajouter le nouveau
+        await addDoc(collection(db, 'stocks'), {
+            type: 'water-bottle',
+            datetime: datetime,
+            timestamp: new Date().toISOString()
+        });
+
+        console.log('Date/heure bouteille d\'eau sauvegardée dans Firebase');
+        
+    } catch (error) {
+        console.error('Erreur sauvegarde datetime eau Firebase:', error);
+        alert('Erreur lors de la sauvegarde');
     }
 }
 
@@ -1489,32 +1561,7 @@ function updateTipsContent() {
     tipsContainer.innerHTML = tips;
 }
 
-// === CHARGEMENT DES DONNÉES ===
-function loadMedicalData() {
-    const savedMedications = localStorage.getItem('babyMedications');
-    if (savedMedications) {
-        medications = JSON.parse(savedMedications);
-        updateMedicationDisplay();
-    }
 
-    const savedAppointments = localStorage.getItem('babyAppointments');
-    if (savedAppointments) {
-        appointments = JSON.parse(savedAppointments);
-        updateAppointmentDisplay();
-    }
-
-    const waterDateTime = localStorage.getItem('waterBottleDateTime');
-    if (waterDateTime) {
-        const element = document.getElementById('water-bottle-datetime');
-        if (element) element.textContent = waterDateTime;
-    }
-
-    const milkDate = localStorage.getItem('milkPowderDate');
-    if (milkDate) {
-        const element = document.getElementById('milk-powder-date');
-        if (element) element.textContent = milkDate;
-    }
-}
 
 // === MISE À JOUR DE L'AFFICHAGE ===
 function updateDisplay() {
@@ -1568,7 +1615,7 @@ window.addFoodEntry = function() { alert('Fonction en développement'); };
 // === INITIALISATION ===
 document.addEventListener('DOMContentLoaded', function () {
     loadEntriesLocal();
-    loadMedicalData();
+
     updateDisplay();
     initializeDailyChart();
 
@@ -1699,3 +1746,88 @@ document.addEventListener('DOMContentLoaded', function () {
     // Mettre à jour l'affichage des médicaments toutes les minutes
     setInterval(updateMedicationDisplay, 60000);
 });
+// === FONCTION POUR RÉCUPÉRER LES STOCKS DEPUIS FIREBASE ===
+async function loadStocksFromFirebase() {
+    if (!db) {
+        console.warn('Firebase non disponible pour charger les stocks');
+        return;
+    }
+
+    try {
+        const stocksSnapshot = await getDocs(collection(db, 'stocks'));
+        
+        stocksSnapshot.forEach((doc) => {
+            const data = doc.data();
+            
+            if (data.type === 'milk-powder' && data.date) {
+                const element = document.getElementById('milk-powder-date');
+                if (element) element.textContent = data.date;
+            }
+            
+            if (data.type === 'water-bottle' && data.datetime) {
+                const element = document.getElementById('water-bottle-datetime');
+                if (element) element.textContent = data.datetime;
+            }
+        });
+        
+        console.log('Stocks chargés depuis Firebase');
+        
+    } catch (error) {
+        console.error('Erreur chargement stocks Firebase:', error);
+    }
+}
+
+// === SUPPRIMER STOCK ===
+async function clearMilkPowderDate() {
+    if (!confirm('Supprimer la date d\'ouverture du lait en poudre ?')) return;
+    
+    if (!db) {
+        alert('Firebase non disponible');
+        return;
+    }
+
+    try {
+        const existingQuery = query(collection(db, 'stocks'), where('type', '==', 'milk-powder'));
+        const querySnapshot = await getDocs(existingQuery);
+        
+        querySnapshot.forEach(async (document) => {
+            await deleteDoc(doc(db, 'stocks', document.id));
+        });
+
+        console.log('Date lait en poudre supprimée de Firebase');
+        
+    } catch (error) {
+        console.error('Erreur suppression date lait Firebase:', error);
+        alert('Erreur lors de la suppression');
+    }
+}
+
+async function clearWaterBottleDateTime() {
+    if (!confirm('Supprimer la date/heure d\'ouverture de la bouteille d\'eau ?')) return;
+    
+    if (!db) {
+        alert('Firebase non disponible');
+        return;
+    }
+
+    try {
+        const existingQuery = query(collection(db, 'stocks'), where('type', '==', 'water-bottle'));
+        const querySnapshot = await getDocs(existingQuery);
+        
+        querySnapshot.forEach(async (document) => {
+            await deleteDoc(doc(db, 'stocks', document.id));
+        });
+
+        console.log('Date/heure bouteille d\'eau supprimée de Firebase');
+        
+    } catch (error) {
+        console.error('Erreur suppression datetime eau Firebase:', error);
+        alert('Erreur lors de la suppression');
+    }
+}
+
+// === EXPOSER LES NOUVELLES FONCTIONS ===
+window.setMilkPowderDate = setMilkPowderDate;
+window.setWaterBottleDateTime = setWaterBottleDateTime;
+window.clearMilkPowderDate = clearMilkPowderDate;
+window.clearWaterBottleDateTime = clearWaterBottleDateTime;
